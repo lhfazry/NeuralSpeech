@@ -10,8 +10,7 @@ def get_noisy_audio(args):
     audio = audio / MAX_WAV_VALUE
     audio = normalize(audio) * 0.95
     
-    N, T = audio.shape
-    device = audio.device
+    T = audio.shape
     
     noise_schedule = np.linspace(1e-4, 0.05, args.step).tolist(), # [beta_start, beta_end, num_diffusion_step]
 
