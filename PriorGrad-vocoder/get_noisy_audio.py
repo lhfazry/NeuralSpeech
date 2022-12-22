@@ -12,7 +12,7 @@ def get_noisy_audio(args):
     
     T = audio.shape
     
-    noise_schedule = np.linspace(1e-4, 0.05, args.step).tolist(), # [beta_start, beta_end, num_diffusion_step]
+    noise_schedule = np.linspace(1e-4, 0.05, args.max_step).tolist(), # [beta_start, beta_end, num_diffusion_step]
 
     beta = np.array(noise_schedule)
     noise_level = np.cumprod(1 - beta)
