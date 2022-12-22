@@ -1,10 +1,14 @@
 import numpy as np
+import soundfile as sf
+import os
 from argparse import ArgumentParser
 from scipy.io.wavfile import read
 from preprocess import MAX_WAV_VALUE, get_mel, normalize
+from pathlib import Path
 
 
-def get_noisy_audio(args):  
+
+def get_noisy_audio(args):
     sr, audio = read(args.audio_path)
     
     audio = audio / MAX_WAV_VALUE
@@ -25,6 +29,14 @@ def get_noisy_audio(args):
     noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
     print(noisy_audio)
 
+    output_dir = args.output_dir
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    filename = Path(args.audio_path).name
+    sf.write(os.path.join(output_dir, filename), noisy_audio, sr, subtype='PCM_24')
+
+
 if __name__ == '__main__':
   parser = ArgumentParser(description='Get noisy audio')
   parser.add_argument('--audio_path', default=None, type=str,
@@ -32,5 +44,7 @@ if __name__ == '__main__':
   parser.add_argument('--max_step', default=400, type=int,
       help='diffusion step')
   parser.add_argument('--step', default=2, type=int,
+      help='diffusion step')
+  parser.add_argument('--output_dir', default='output', type=str,
       help='diffusion step')
   get_noisy_audio(parser.parse_args())
