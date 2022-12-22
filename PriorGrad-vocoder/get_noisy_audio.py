@@ -33,8 +33,8 @@ def get_noisy_audio(args):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    filename = Path(args.audio_path).name
-    sf.write(os.path.join(output_dir, filename), noisy_audio, sr, subtype='PCM_24')
+    filename = Path(args.audio_path).stem
+    sf.write(os.path.join(output_dir, filename + "_noisy.wav"), noisy_audio, sr, subtype='PCM_24')
 
 
 if __name__ == '__main__':
