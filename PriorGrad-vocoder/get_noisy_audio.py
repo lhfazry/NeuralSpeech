@@ -26,9 +26,6 @@ def get_noisy_audio(args):
     noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
     print(noisy_audio)
 
-def main(args):
-    get_noisy_audio()
-
 if __name__ == '__main__':
   parser = ArgumentParser(description='Get noisy audio')
   parser.add_argument('--audio_path', default=None, type=str,
@@ -37,4 +34,4 @@ if __name__ == '__main__':
       help='diffusion step')
   parser.add_argument('--step', default=2, type=int,
       help='diffusion step')
-  main(parser.parse_args())
+  get_noisy_audio(parser.parse_args())
