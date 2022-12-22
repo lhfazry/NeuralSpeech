@@ -33,8 +33,8 @@ if __name__ == '__main__':
   parser = ArgumentParser(description='Get noisy audio')
   parser.add_argument('--audio_path', default=None, type=str,
       help='audio path')
-  parser.add_argument('--max_step', default=None, type=int,
+  parser.add_argument('--max_step', default=400, type=int,
       help='diffusion step')
-  parser.add_argument('--step', default=None, type=int,
+  parser.add_argument('--step', default=2, type=int,
       help='diffusion step')
   main(parser.parse_args())
