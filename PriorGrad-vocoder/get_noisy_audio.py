@@ -8,12 +8,17 @@ from pathlib import Path
 import shutil
 
 def noise_psd(N, psd = lambda f: 1):
-        X_white = np.fft.rfft(np.random.randn(N));
-        S = psd(np.fft.rfftfreq(N))
-        # Normalize S
-        S = S / np.sqrt(np.mean(S**2))
-        X_shaped = X_white * S;
-        return np.fft.irfft(X_shaped);
+    print(f"N: {N.shape}")
+    X_white = np.fft.rfft(np.random.randn(N))
+    print(f"X_white: {X_white.shape}")
+    S = psd(np.fft.rfftfreq(N))
+    print(f"S: {S.shape}")
+    # Normalize S
+    S = S / np.sqrt(np.mean(S**2))
+    print(f"S2: {S.shape}")
+    X_shaped = X_white * S
+    print(f"X_shaped: {X_shaped.shape}")
+    return np.fft.irfft(X_shaped)
 
 def PSDGenerator(f):
     return lambda N: noise_psd(N, f)
