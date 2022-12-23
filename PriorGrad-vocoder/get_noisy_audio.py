@@ -62,8 +62,8 @@ def get_noisy_audio(args):
     print(args.steps)
 
     #t = np.random.randint(0, len(noise_schedule), [N])
-    for t in args.steps:
-    #t = args.step
+    for step in args.steps:
+        t = int(step)
         noise_scale = noise_level[t]
         noise_scale_sqrt = noise_scale ** 0.5
         
