@@ -58,15 +58,15 @@ def get_noisy_audio(args):
     
     # noise = np.random.randn(*audio.shape)
     if args.color == 'white':
-        noise = white_noise(audio.shape)#np.random.randn(*audio.shape)
+        noise = white_noise(*audio.shape)#np.random.randn(*audio.shape)
     elif  args.color == 'blue':
-        noise = blue_noise(audio.shape)
+        noise = blue_noise(*audio.shape)
     elif  args.color == 'violet':
-        noise = violet_noise(audio.shape)
+        noise = violet_noise(*audio.shape)
     elif  args.color == 'brown':
-        noise = brownian_noise(audio.shape)
+        noise = brownian_noise(*audio.shape)
     elif  args.color == 'pink':
-        noise = pink_noise(audio.shape)
+        noise = pink_noise(*audio.shape)
 
     noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
     print(noisy_audio)
