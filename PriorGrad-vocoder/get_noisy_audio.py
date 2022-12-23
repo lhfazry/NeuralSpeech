@@ -6,6 +6,8 @@ from scipy.io.wavfile import read
 from preprocess import MAX_WAV_VALUE, get_mel, normalize
 from pathlib import Path
 import shutil
+#from speechbrain.processing.speech_augmentation import AddBabble
+#import pytest
 
 def noise_psd(N, psd = lambda f: 1):
     print(f"N: {N}")
@@ -46,6 +48,23 @@ def brownian_noise(f):
 def pink_noise(f):
     return 1/np.where(f == 0, float('inf'), np.sqrt(f))
 
+def get_babble_noise(audio, sr, noise):
+    if noise == 'cafe':
+        sr, noise_sample = read('noises/cafeteria_babble.wav')
+    elif noise == 'street':
+        sr, noise_sample = read('noises/street_noise_downtown.wav')
+    
+    N = audio.shape[0]
+    i_start = np.random.randint(0,len(noise_sample)-N-1)
+    noise = noise_sample[i_start:i_start+N]
+    
+    e = np.linalg.norm(audio)
+    en = np.linalg.norm(noise)
+    gain = 10.0**(-1.0*sr/20.0)
+    noise = gain * noise * e / en
+
+    return noise
+    
 def get_noisy_audio(args):
     sr, audio = read(args.audio_path)
     
@@ -76,6 +95,8 @@ def get_noisy_audio(args):
             noise = brownian_noise(*audio.shape)
         elif  args.color == 'pink':
             noise = pink_noise(*audio.shape)
+        elif args.color == 'babble':
+            noise = get_babble_noise(audio, sr, args.babble)
 
         noisy_audio = noise_scale_sqrt * audio[:len(noise)] + (1.0 - noise_scale) ** 0.5 * noise
         print(noisy_audio)
@@ -94,6 +115,8 @@ if __name__ == '__main__':
   parser.add_argument('--audio_path', default=None, type=str,
       help='audio path')
   parser.add_argument('--color', default='white', type=str,
+      help='diffusion step')
+  parser.add_argument('--babble', default='cafe', type=str,
       help='diffusion step')
   parser.add_argument('--max_step', default=400, type=int,
       help='diffusion step')
