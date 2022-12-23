@@ -107,7 +107,11 @@ def get_noisy_audio(args):
 
         filename = Path(args.audio_path).stem
         shutil.copyfile(args.audio_path, os.path.join(output_dir, Path(args.audio_path).name))
-        sf.write(os.path.join(output_dir, filename + f"_noisy_{args.color}_{t}.wav"), noisy_audio, sr, subtype='PCM_24')
+
+        if args.color == 'babble':
+            sf.write(os.path.join(output_dir, filename + f"_noisy_{args.color}_{args.babble}_{t}.wav"), noisy_audio, sr, subtype='PCM_24')
+        else:
+            sf.write(os.path.join(output_dir, filename + f"_noisy_{args.color}_{t}.wav"), noisy_audio, sr, subtype='PCM_24')
 
 
 if __name__ == '__main__':
