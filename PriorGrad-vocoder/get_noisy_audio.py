@@ -50,9 +50,9 @@ def pink_noise(f):
 
 def get_babble_noise(audio, sr, noise):
     if noise == 'cafe':
-        sr, noise_sample = read('noises/cafeteria_babble.wav')
+        sr, noise_sample = read('noises/avsr_noise_data_cafeteria_babble.wav')
     elif noise == 'street':
-        sr, noise_sample = read('noises/street_noise_downtown.wav')
+        sr, noise_sample = read('noises/avsr_noise_data_street_noise_downtown.wav')
     
     N = audio.shape[0]
     i_start = np.random.randint(0,len(noise_sample)-N-1)
