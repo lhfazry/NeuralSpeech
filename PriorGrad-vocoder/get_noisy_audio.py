@@ -57,15 +57,15 @@ def get_noisy_audio(args):
     noise_scale_sqrt = noise_scale ** 0.5
     
     # noise = np.random.randn(*audio.shape)
-    if args.noise == 'white':
+    if args.color == 'white':
         noise = white_noise(audio.shape)#np.random.randn(*audio.shape)
-    elif  args.noise == 'blue':
+    elif  args.color == 'blue':
         noise = blue_noise(audio.shape)
-    elif  args.noise == 'violet':
+    elif  args.color == 'violet':
         noise = violet_noise(audio.shape)
-    elif  args.noise == 'brown':
+    elif  args.color == 'brown':
         noise = brownian_noise(audio.shape)
-    elif  args.noise == 'pink':
+    elif  args.color == 'pink':
         noise = pink_noise(audio.shape)
 
     noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
@@ -77,14 +77,14 @@ def get_noisy_audio(args):
 
     filename = Path(args.audio_path).stem
     shutil.copyfile(args.audio_path, os.path.join(output_dir, Path(args.audio_path).name))
-    sf.write(os.path.join(output_dir, filename + f"_noisy_{args.step}.wav"), noisy_audio, sr, subtype='PCM_24')
+    sf.write(os.path.join(output_dir, filename + f"_noisy_{args.color}_{args.step}.wav"), noisy_audio, sr, subtype='PCM_24')
 
 
 if __name__ == '__main__':
   parser = ArgumentParser(description='Get noisy audio')
   parser.add_argument('--audio_path', default=None, type=str,
       help='audio path')
-  parser.add_argument('--noise', default='white', type=str,
+  parser.add_argument('--color', default='white', type=str,
       help='diffusion step')
   parser.add_argument('--max_step', default=400, type=int,
       help='diffusion step')
