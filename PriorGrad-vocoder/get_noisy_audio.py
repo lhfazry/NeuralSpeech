@@ -76,7 +76,7 @@ def get_noisy_audio(args):
     elif  args.color == 'pink':
         noise = pink_noise(*audio.shape)
 
-    noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
+    noisy_audio = noise_scale_sqrt * audio[:len(noise)] + (1.0 - noise_scale) ** 0.5 * noise
     print(noisy_audio)
 
     output_dir = args.output_dir
