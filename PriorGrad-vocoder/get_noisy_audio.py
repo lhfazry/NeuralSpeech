@@ -18,7 +18,10 @@ def noise_psd(N, psd = lambda f: 1):
     print(f"S2: {S.shape}")
     X_shaped = X_white * S
     print(f"X_shaped: {X_shaped.shape}")
-    return np.fft.irfft(X_shaped)
+
+    X_final = np.fft.irfft(X_shaped)
+    print(f"X_final: {X_final.shape}")
+    return X_final
 
 def PSDGenerator(f):
     return lambda N: noise_psd(N, f)
