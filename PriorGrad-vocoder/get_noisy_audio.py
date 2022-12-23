@@ -58,10 +58,10 @@ def get_babble_noise(audio, sr, noise):
     i_start = np.random.randint(0,len(noise_sample)-N-1)
     noise = noise_sample[i_start:i_start+N]
     
-    #e = np.linalg.norm(audio)
-    #en = np.linalg.norm(noise)
-    #gain = 10.0**(-1.0*sr/20.0)
-    #noise = gain * noise * e / en
+    e = np.linalg.norm(audio)
+    en = np.linalg.norm(noise)
+    gain = 10.0**(-1.0*sr/20.0)
+    noise = gain * noise * e / en
 
     return noise
     
