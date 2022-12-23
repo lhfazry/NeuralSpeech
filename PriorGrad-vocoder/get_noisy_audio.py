@@ -8,7 +8,7 @@ from pathlib import Path
 import shutil
 
 def noise_psd(N, psd = lambda f: 1):
-    print(f"N: {N.shape}")
+    print(f"N: {N}")
     X_white = np.fft.rfft(np.random.randn(N))
     print(f"X_white: {X_white.shape}")
     S = psd(np.fft.rfftfreq(N))
