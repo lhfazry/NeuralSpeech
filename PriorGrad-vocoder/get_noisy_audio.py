@@ -60,32 +60,33 @@ def get_noisy_audio(args):
     noise_level = np.cumprod(1 - beta)
 
     #t = np.random.randint(0, len(noise_schedule), [N])
-    t = args.step
-    noise_scale = noise_level[t]
-    noise_scale_sqrt = noise_scale ** 0.5
-    
-    # noise = np.random.randn(*audio.shape)
-    if args.color == 'white':
-        noise = white_noise(*audio.shape)#np.random.randn(*audio.shape)
-    elif  args.color == 'blue':
-        noise = blue_noise(*audio.shape)
-    elif  args.color == 'violet':
-        noise = violet_noise(*audio.shape)
-    elif  args.color == 'brown':
-        noise = brownian_noise(*audio.shape)
-    elif  args.color == 'pink':
-        noise = pink_noise(*audio.shape)
+    for t in args.steps:
+    #t = args.step
+        noise_scale = noise_level[t]
+        noise_scale_sqrt = noise_scale ** 0.5
+        
+        # noise = np.random.randn(*audio.shape)
+        if args.color == 'white':
+            noise = white_noise(*audio.shape)#np.random.randn(*audio.shape)
+        elif  args.color == 'blue':
+            noise = blue_noise(*audio.shape)
+        elif  args.color == 'violet':
+            noise = violet_noise(*audio.shape)
+        elif  args.color == 'brown':
+            noise = brownian_noise(*audio.shape)
+        elif  args.color == 'pink':
+            noise = pink_noise(*audio.shape)
 
-    noisy_audio = noise_scale_sqrt * audio[:len(noise)] + (1.0 - noise_scale) ** 0.5 * noise
-    print(noisy_audio)
+        noisy_audio = noise_scale_sqrt * audio[:len(noise)] + (1.0 - noise_scale) ** 0.5 * noise
+        print(noisy_audio)
 
-    output_dir = args.output_dir
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+        output_dir = args.output_dir
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
 
-    filename = Path(args.audio_path).stem
-    shutil.copyfile(args.audio_path, os.path.join(output_dir, Path(args.audio_path).name))
-    sf.write(os.path.join(output_dir, filename + f"_noisy_{args.color}_{args.step}.wav"), noisy_audio, sr, subtype='PCM_24')
+        filename = Path(args.audio_path).stem
+        shutil.copyfile(args.audio_path, os.path.join(output_dir, Path(args.audio_path).name))
+        sf.write(os.path.join(output_dir, filename + f"_noisy_{args.color}_{t}.wav"), noisy_audio, sr, subtype='PCM_24')
 
 
 if __name__ == '__main__':
@@ -96,7 +97,8 @@ if __name__ == '__main__':
       help='diffusion step')
   parser.add_argument('--max_step', default=400, type=int,
       help='diffusion step')
-  parser.add_argument('--step', default=2, type=int,
+  parser.add_argument('--steps', default=2, type=int,
+      nargs='+',
       help='diffusion step')
   parser.add_argument('--output_dir', default='output', type=str,
       help='diffusion step')
