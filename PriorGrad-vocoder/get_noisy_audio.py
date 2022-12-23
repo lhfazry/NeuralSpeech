@@ -97,7 +97,7 @@ if __name__ == '__main__':
       help='diffusion step')
   parser.add_argument('--max_step', default=400, type=int,
       help='diffusion step')
-  parser.add_argument('--steps', default=2, type=int,
+  parser.add_argument('--steps', required=True,
       nargs='+',
       help='diffusion step')
   parser.add_argument('--output_dir', default='output', type=str,
