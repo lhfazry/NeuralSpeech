@@ -9,36 +9,29 @@ import shutil
 #from speechbrain.processing.speech_augmentation import AddBabble
 #import pytest
 
-def noise_psd(N, psd = lambda f: 1):
-    print(f"N: {N}")
-    X_white = np.fft.rfft(np.random.randn(N))
-    print(f"X_white: {X_white.shape}")
+def noise_psd(T, N, psd = lambda f: 1):
+    X_white = np.fft.rfftn(np.random.randn(T, N))
     S = psd(np.fft.rfftfreq(N))
-    print(f"S: {S.shape}")
     # Normalize S
     S = S / np.sqrt(np.mean(S**2))
-    print(f"S2: {S.shape}")
     X_shaped = X_white * S
-    print(f"X_shaped: {X_shaped.shape}")
-
-    X_final = np.fft.irfft(X_shaped)
-    print(f"X_final: {X_final.shape}")
+    X_final = np.fft.irfftn(X_shaped)
     return X_final
 
 def PSDGenerator(f):
-    return lambda N: noise_psd(N, f)
+    return lambda T, N: noise_psd(T, N, f)
 
 @PSDGenerator
 def white_noise(f):
-    return 1;
+    return 1
 
 @PSDGenerator
 def blue_noise(f):
-    return np.sqrt(f);
+    return np.sqrt(f)
 
 @PSDGenerator
 def violet_noise(f):
-    return f;
+    return f
 
 @PSDGenerator
 def brownian_noise(f):
@@ -48,7 +41,7 @@ def brownian_noise(f):
 def pink_noise(f):
     return 1/np.where(f == 0, float('inf'), np.sqrt(f))
 
-def get_babble_noise(audio, sr, noise):
+def get_babble_noise(audio, snr, noise):
     if noise == 'cafe':
         sr, noise_sample = read('noises/avsr_noise_data_cafeteria_babble.wav')
     elif noise == 'street':
@@ -60,7 +53,7 @@ def get_babble_noise(audio, sr, noise):
     
     e = np.linalg.norm(audio)
     en = np.linalg.norm(noise)
-    gain = 10.0**(-1.0*sr/20.0)
+    gain = 10.0**(-1.0*snr/20.0)
     noise = gain * noise * e / en
 
     return noise

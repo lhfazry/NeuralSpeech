@@ -42,6 +42,7 @@ from dataset import from_path as dataset_from_path
 from dataset import from_path_valid as dataset_from_path_valid
 from model import PriorGrad
 from preprocess import get_mel
+from get_noisy_audio import white_noise, blue_noise, violet_noise, brownian_noise, pink_noise
 
 def _nested_map(struct, map_fn):
     if isinstance(struct, tuple):
@@ -58,6 +59,18 @@ def scaled_mse_loss(decoder_output, target, target_std):
     mse_loss = (((decoder_output - target) * sigma_inv) ** 2)
     mse_loss = (mse_loss).sum() / torch.numel(decoder_output)
     return mse_loss
+
+def get_color_noise(T, N, color):
+    if color == 2: #2 = blue, 
+        return blue_noise(T, N) 
+    elif color == 3: #3 = violet,
+        return violet_noise(T, N)
+    elif color == 4: #4 = brownian, 
+        return brownian_noise(T, N)
+    elif color == 5: #5 = pink 
+        return pink_noise(T, N)
+
+    return white_noise(T, N)
 
 
 class PriorGradLearner:
@@ -179,7 +192,8 @@ class PriorGradLearner:
             t = torch.randint(0, len(self.params.noise_schedule), [N], device=audio.device)
             noise_scale = self.noise_level[t].unsqueeze(1)
             noise_scale_sqrt = noise_scale ** 0.5
-            noise = torch.randn_like(audio)
+            #noise = torch.randn_like(audio)
+            noise = get_color_noise(T, N, self.params.noise_color)
             noise = noise * target_std
             noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
 
