@@ -6,8 +6,25 @@ from scipy.io.wavfile import read
 from preprocess import MAX_WAV_VALUE, get_mel, normalize
 from pathlib import Path
 import shutil
+import torch
 #from speechbrain.processing.speech_augmentation import AddBabble
 #import pytest
+
+def get_color_noise(T, N, dtype, color):
+    noises = None
+
+    if color == 1: #1 = white, 
+        noises = white_noise(T, N)
+    elif color == 2: #2 = blue, 
+        noises = blue_noise(T, N) 
+    elif color == 3: #3 = violet,
+        noises = violet_noise(T, N)
+    elif color == 4: #4 = brownian, 
+        noises = brownian_noise(T, N)
+    elif color == 5: #5 = pink 
+        noises = pink_noise(T, N)
+
+    return torch.from_numpy(noises).type(dtype)
 
 def noise_psd(T, N, psd = lambda f: 1):
     X_white = np.fft.rfftn(np.random.randn(T, N))
