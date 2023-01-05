@@ -182,7 +182,7 @@ class PriorGradLearner:
             noise_scale_sqrt = noise_scale ** 0.5
             noise = torch.randn_like(audio)
             print(f'noise shape: {noise.shape}')
-            noise = get_color_noise(T, N, audio.dtype, self.params.noise_color).to(device)
+            noise = get_color_noise(N, T, audio.dtype, self.params.noise_color).to(device)
             print(f'color noise shape: {noise.shape}')
             noise = noise * target_std
             noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise

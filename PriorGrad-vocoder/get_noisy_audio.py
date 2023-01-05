@@ -10,39 +10,39 @@ import torch
 #from speechbrain.processing.speech_augmentation import AddBabble
 #import pytest
 
-def get_color_noise(T, N, dtype, color):
+def get_color_noise(N, T, dtype, color):
     noises = None
 
     if color == 1: #1 = white, 
-        noises = white_noise(T, N)
+        noises = white_noise(N, T)
     elif color == 2: #2 = blue, 
-        noises = blue_noise(T, N) 
+        noises = blue_noise(N, T) 
     elif color == 3: #3 = violet,
-        noises = violet_noise(T, N)
+        noises = violet_noise(N, T)
     elif color == 4: #4 = brownian, 
-        noises = brownian_noise(T, N)
+        noises = brownian_noise(N, T)
     elif color == 5: #5 = pink 
-        noises = pink_noise(T, N)
+        noises = pink_noise(N, T)
 
     return torch.from_numpy(noises).type(dtype)
 
-def noise_psd(T, N, psd = lambda f: 1):
-    noise = np.random.randn(T, N)
-    print(f"noise: {noise.shape}")
+def noise_psd(N, T, psd = lambda f: 1):
+    noise = np.random.randn(N, T)
+    #print(f"noise: {noise.shape}")
     X_white = np.fft.rfftn(noise)
-    print(f"X_white: {X_white.shape}")
-    S = psd(np.fft.rfftfreq(N))
-    print(f"S: {S.shape}")
+    #print(f"X_white: {X_white.shape}")
+    S = psd(np.fft.rfftfreq(T))
+    #print(f"S: {S.shape}")
     # Normalize S
     S = S / np.sqrt(np.mean(S**2))
     X_shaped = X_white * S
-    print(f"X_shaped: {X_shaped.shape}")
+    #print(f"X_shaped: {X_shaped.shape}")
     X_final = np.fft.irfftn(X_shaped)
-    print(f"X_final: {X_final.shape}")
+    #print(f"X_final: {X_final.shape}")
     return X_final
 
 def PSDGenerator(f):
-    return lambda T, N: noise_psd(T, N, f)
+    return lambda N, T: noise_psd(N, T, f)
 
 @PSDGenerator
 def white_noise(f):
@@ -70,9 +70,9 @@ def get_babble_noise(audio, snr, noise):
     elif noise == 'street':
         sr, noise_sample = read('noises/avsr_noise_data_street_noise_downtown.wav')
     
-    N = audio.shape[0]
-    i_start = np.random.randint(0,len(noise_sample)-N-1)
-    noise = noise_sample[i_start:i_start+N]
+    T = audio.shape[0]
+    i_start = np.random.randint(0,len(noise_sample)-T-1)
+    noise = noise_sample[i_start:i_start+T]
     
     e = np.linalg.norm(audio)
     en = np.linalg.norm(noise)
