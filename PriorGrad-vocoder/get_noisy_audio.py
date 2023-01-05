@@ -27,12 +27,18 @@ def get_color_noise(T, N, dtype, color):
     return torch.from_numpy(noises).type(dtype)
 
 def noise_psd(T, N, psd = lambda f: 1):
-    X_white = np.fft.rfftn(np.random.randn(T, N))
+    noise = np.random.randn(T, N)
+    print(f"noise: {noise.shape}")
+    X_white = np.fft.rfftn(noise)
+    print(f"X_white: {X_white.shape}")
     S = psd(np.fft.rfftfreq(N))
+    print(f"S: {S.shape}")
     # Normalize S
     S = S / np.sqrt(np.mean(S**2))
     X_shaped = X_white * S
+    print(f"X_shaped: {X_shaped.shape}")
     X_final = np.fft.irfftn(X_shaped)
+    print(f"X_final: {X_final.shape}")
     return X_final
 
 def PSDGenerator(f):
