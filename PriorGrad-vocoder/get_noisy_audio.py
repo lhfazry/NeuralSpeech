@@ -112,7 +112,7 @@ def get_noisy_audio(args):
         elif  args.color == 'pink':
             noise = pink_noise(*audio.shape)
         elif args.color == 'babble':
-            noise = get_babble_noise(audio, sr, args.babble)
+            noise = get_babble_noise(audio, 32, args.babble)
 
         noisy_audio = noise_scale_sqrt * audio[:len(noise)] + (1.0 - noise_scale) ** 0.5 * noise
         print(noisy_audio)
