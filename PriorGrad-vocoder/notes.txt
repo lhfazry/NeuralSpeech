@@ -1,0 +1,19 @@
+1. white normal gaussian
+CUDA_VISIBLE_DEVICES=4 python __main__.py \
+checkpoints/diffwave_white_normal_gaussian \
+/workspace/LJSpeech-1.1 \
+filelists/train.txt >> logs/diffwave_white_noprior.log 2>&1 &
+DONE
+
+2. pink normal gaussian
+CUDA_VISIBLE_DEVICES=4 python __main__.py \
+   checkpoints/diffwave_pink_normal_gaussian \
+   /workspace/LJSpeech-1.1 \
+   filelists/train.txt >> logs/diffwave_pink_noprior.log 2>&1 &
+DONE
+
+3. pink data-dependent gaussian
+CUDA_VISIBLE_DEVICES=4 python __main__.py \
+   checkpoints/diffwave_pink_datadependent_gaussian \
+   /workspace/LJSpeech-1.1 \
+   filelists/train.txt >> logs/diffwave_pink_noprior.log 2>&1 &
