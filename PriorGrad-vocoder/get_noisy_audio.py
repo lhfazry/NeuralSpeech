@@ -10,24 +10,26 @@ import torch
 #from speechbrain.processing.speech_augmentation import AddBabble
 #import pytest
 
-def get_color_noise(N, T, dtype, color):
+def get_color_noise(N, T, dtype, color, noise=None):
     noises = None
 
     if color == 1: #1 = white, 
-        noises = white_noise(N, T)
+        noises = white_noise(N, T, noise)
     elif color == 2: #2 = blue, 
-        noises = blue_noise(N, T) 
+        noises = blue_noise(N, T, noise)
     elif color == 3: #3 = violet,
-        noises = violet_noise(N, T)
+        noises = violet_noise(N, T, noise)
     elif color == 4: #4 = brownian, 
-        noises = brownian_noise(N, T)
+        noises = brownian_noise(N, T, noise)
     elif color == 5: #5 = pink 
-        noises = pink_noise(N, T)
+        noises = pink_noise(N, T, noise)
 
     return torch.from_numpy(noises).type(dtype)
 
-def noise_psd(N, T, psd = lambda f: 1):
-    noise = np.random.randn(N, T)
+def noise_psd(N, T, noise, psd = lambda f: 1):
+    if noise is None: # gaussion
+        noise = np.random.randn(N, T)
+
     #print(f"noise: {noise.shape}")
     X_white = np.fft.rfftn(noise)
     #print(f"X_white: {X_white.shape}")
@@ -42,7 +44,7 @@ def noise_psd(N, T, psd = lambda f: 1):
     return X_final
 
 def PSDGenerator(f):
-    return lambda N, T: noise_psd(N, T, f)
+    return lambda N, T, noise: noise_psd(N, T, noise, f)
 
 @PSDGenerator
 def white_noise(f):

@@ -88,6 +88,11 @@ class PriorGradLearner:
         noise_level = np.cumprod(1 - beta)
         self.noise_level = torch.tensor(noise_level.astype(np.float32))
 
+        if self.params.noise_dist == 2: # gamma
+            alpha = 1 - beta
+            gamma_shape = np.cumsum(beta / (alpha * (self.params.gamma_init_scale ** 2)))
+            self.gamma_shape = torch.tensor(gamma_shape.astype(np.float32))
+
         self.summary_writer = None
 
     def state_dict(self):
@@ -180,12 +185,23 @@ class PriorGradLearner:
             t = torch.randint(0, len(self.params.noise_schedule), [N], device=audio.device)
             noise_scale = self.noise_level[t].unsqueeze(1)
             noise_scale_sqrt = noise_scale ** 0.5
-            noise = torch.randn_like(audio)
-            #print(f'noise shape: {noise.shape}')
-            noise = get_color_noise(N, T, audio.dtype, self.params.noise_color).to(device)
-            #print(f'color noise shape: {noise.shape}')
-            noise = noise * target_std
-            noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
+            #noise = torch.randn_like(audio)
+
+            if self.params.noise_dist == 1: # gaussian
+                noise = None
+            elif self.params.noise_dist == 2: # gamma
+                gamma_scale = noise_scale_sqrt * self.params.gamma_init_scale
+                gamma_shape = self.gamma_shape[t].unsqueeze(1)
+                noise = torch.tensor(np.random.gamma(gamma_shape, gamma_scale, (N, T)).astype(np.float32))
+
+            noise = get_color_noise(N, T, audio.dtype, self.params.noise_color, noise).to(device)
+            
+            if self.params.noise_dist == 1: # gaussian
+                noise = noise * target_std
+                noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
+            elif self.params.noise_dist == 2: # gamma
+                noise = noise * target_std
+                noisy_audio = noise_scale_sqrt * audio + (noise - gamma_shape * gamma_scale)
 
             predicted = self.model(noisy_audio, spectrogram, t, global_cond)
 
