@@ -201,7 +201,7 @@ class PriorGradLearner:
                 noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
             elif self.params.noise_dist == 2: # gamma
                 noise = noise * target_std
-                noisy_audio = noise_scale_sqrt * audio + (noise - gamma_shape * gamma_scale)
+                noisy_audio = noise_scale_sqrt * audio + (noise - gamma_shape.to(device) * gamma_scale.to(device))
 
             predicted = self.model(noisy_audio, spectrogram, t, global_cond)
 
