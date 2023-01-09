@@ -64,7 +64,7 @@ params = AttrDict(
     crop_mel_frames=62,  # PriorGrad keeps the previous open-source implementation
 
     # new data params for PriorGrad-vocoder
-    use_prior=True,
+    use_prior=False,
     # optional parameters to additionally use the frame-level energy as the conditional input
     # one can choose one of the two options as below. note that only one can be set to True.
     condition_prior=False, # whether to use energy prior as concatenated feature with mel. default is false

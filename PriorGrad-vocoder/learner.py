@@ -257,8 +257,25 @@ class PriorGradLearner:
                 noise_scale = self.noise_level[t].unsqueeze(1)
                 noise_scale_sqrt = noise_scale ** 0.5
                 noise = torch.randn_like(audio)
-                noise = noise * target_std
-                noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
+
+                if self.params.noise_dist == 1: # gaussian
+                    noise = None
+                elif self.params.noise_dist == 2: # gamma
+                    gamma_scale = noise_scale_sqrt * self.params.gamma_init_scale
+                    gamma_shape = self.gamma_shape[t].unsqueeze(1)
+                    noise = np.random.gamma(gamma_shape.cpu(), gamma_scale.cpu(), (N, T)).astype(np.float32)
+
+                noise = get_color_noise(N, T, audio.dtype, self.params.noise_color, noise).to(device)
+                
+                if self.params.noise_dist == 1: # gaussian
+                    noise = noise * target_std
+                    noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
+                elif self.params.noise_dist == 2: # gamma
+                    noise = noise * target_std
+                    noisy_audio = noise_scale_sqrt * audio + (noise - gamma_shape.to(device) * gamma_scale.to(device))
+                    
+                #noise = noise * target_std
+                #noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
 
                 if hasattr(self.model, 'module'):
                     predicted = self.model.module(noisy_audio, spectrogram, t, global_cond)
