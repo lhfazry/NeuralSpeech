@@ -18,4 +18,8 @@ CUDA_VISIBLE_DEVICES=7 python __main__.py \
    /workspace/LJSpeech-1.1 \
    filelists/train.txt >> logs/diffwave_pink_datadependent_gaussian.log 2>&1 &
 
-4. 
+4. pink normal gamma
+CUDA_VISIBLE_DEVICES=0 python __main__.py \
+   checkpoints/diffwave_pink_norma_gamma \
+   /workspace/LJSpeech-1.1 \
+   filelists/train.txt >> logs/diffwave_pink_norma_gamma.log 2>&1 &
