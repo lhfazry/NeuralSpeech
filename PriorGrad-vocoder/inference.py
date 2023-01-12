@@ -125,7 +125,7 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
             gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale)
             gamma_shape = gamma_shape[int(T[0])]
             audio = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
-            audio = audio * target_std
+            audio = audio * target_std.cpu()
 
         audio = get_color_noise(N, T2, audio.dtype, model.params.noise_color, audio.cpu()).to(device)
         
