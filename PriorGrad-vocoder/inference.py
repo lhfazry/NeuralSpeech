@@ -106,6 +106,7 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
         #noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
         audio = None
         _, N, T2 = spectrogram.shape
+        print(f"N: {N}, T2: {T2}")
 
         if model.params.noise_dist == 1: # gaussian
                 audio = torch.randn(spectrogram.shape[0], model.params.hop_samples * spectrogram.shape[-1],
