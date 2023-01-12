@@ -256,10 +256,10 @@ class PriorGradLearner:
                 t = torch.randint(0, len(self.params.noise_schedule), [N], device=audio.device)
                 noise_scale = self.noise_level[t].unsqueeze(1)
                 noise_scale_sqrt = noise_scale ** 0.5
-                noise = torch.randn_like(audio)
+                noise = None
 
                 if self.params.noise_dist == 1: # gaussian
-                    noise = None
+                    noise = torch.randn_like(audio)
                 elif self.params.noise_dist == 2: # gamma
                     gamma_scale = noise_scale_sqrt * self.params.gamma_init_scale
                     gamma_shape = self.gamma_shape[t].unsqueeze(1)
@@ -340,9 +340,24 @@ class PriorGradLearner:
                 spectrogram = spectrogram.unsqueeze(0)
             spectrogram = spectrogram.to(device)
 
-            audio = torch.randn(spectrogram.shape[0], self.params.hop_samples * spectrogram.shape[-1],
+            #audio = torch.randn(spectrogram.shape[0], self.params.hop_samples * spectrogram.shape[-1],
+            #                    device=device) * target_std
+            #noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
+            audio = None
+            _, N, T2 = spectrogram.shape
+
+            if self.params.noise_dist == 1: # gaussian
+                audio = torch.randn(spectrogram.shape[0], self.params.hop_samples * spectrogram.shape[-1],
                                 device=device) * target_std
-            noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
+            elif self.params.noise_dist == 2: # gamma
+                noise_scale_sqrt = self.noise_level[T[0]].unsqueeze(1) ** 0.5
+                #noise_scale_sqrt = noise_scale ** 0.5
+                gamma_scale = (noise_scale_sqrt * self.params.gamma_init_scale).cpu()
+                gamma_shape = self.gamma_shape[T[0]].unsqueeze(1).cpu()
+                audio = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
+                audio = audio * target_std
+
+            audio = get_color_noise(N, T2, audio.dtype, self.params.noise_color, noise).to(device)
 
             for n in range(len(alpha) - 1, -1, -1):
                 c1 = 1 / alpha[n] ** 0.5
@@ -355,6 +370,16 @@ class PriorGradLearner:
                                                           global_cond).squeeze(1))
                 if n > 0:
                     noise = torch.randn_like(audio) * target_std
+
+                    if self.params.noise_dist == 1: # gaussian
+                        noise = torch.randn_like(audio) * target_std
+                    elif self.params.noise_dist == 2: # gamma
+                        noise_scale_sqrt = self.noise_level[T[n]].unsqueeze(1) ** 0.5
+                        gamma_scale = (noise_scale_sqrt * self.params.gamma_init_scale).cpu()
+                        gamma_shape = self.gamma_shape[T[n-1]].unsqueeze(1).cpu()
+                        noise = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
+                        noise = noise * target_std
+
                     sigma = ((1.0 - alpha_cum[n - 1]) / (1.0 - alpha_cum[n]) * beta[n]) ** 0.5
                     audio += sigma * noise
                 audio = torch.clamp(audio, -1.0, 1.0)

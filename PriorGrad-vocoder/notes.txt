@@ -33,3 +33,34 @@ CUDA_VISIBLE_DEVICES=0 python __main__.py \
 
 versi singularity
 python __main__.py checkpoints/diffwave_pink_normal_gamma /home/s2212015/LJSpeech-1.1 filelists/train.txt >> logs/diffwave_pink_normal_gamma.log 2>&1
+
+Inferences:
+
+1) White normal gaussian
+FAST:
+CUDA_VISIBLE_DEVICES=3 python inference.py checkpoints/diffwave_white_normal_gaussian /workspace/LJSpeech-1.1 filelists/test.txt --step 200000 --fast --fast_iter 50 >> logs/inferences/diffwave_white_normal_gaussian.log 2>&1 &
+
+SLOW:
+CUDA_VISIBLE_DEVICES=3 python inference.py checkpoints/diffwave_white_normal_gaussian /workspace/LJSpeech-1.1 filelists/test.txt --step 200000 --fast_iter 50 >> logs/inferences/diffwave_white_normal_gaussian.log 2>&1 &
+
+2) Pink normal gaussian
+FAST:
+CUDA_VISIBLE_DEVICES=3 python inference.py checkpoints/diffwave_pink_normal_gaussian /workspace/LJSpeech-1.1 filelists/test.txt --step 200000 --fast --fast_iter 50 >> logs/inferences/diffwave_pink_normal_gaussian.log 2>&1 &
+
+SLOW:
+CUDA_VISIBLE_DEVICES=3 python inference.py checkpoints/diffwave_pink_normal_gaussian /workspace/LJSpeech-1.1 filelists/test.txt --step 200000 --fast_iter 50 >> logs/inferences/diffwave_pink_normal_gaussian.log 2>&1 &
+
+3) Pink datadependent gaussian
+FAST:
+CUDA_VISIBLE_DEVICES=3 python inference.py checkpoints/diffwave_pink_datadependent_gaussian /workspace/LJSpeech-1.1 filelists/test.txt --step 200000 --fast --fast_iter 50 >> logs/inferences/diffwave_pink_datadependent_gaussian.log 2>&1 &
+
+SLOW:
+CUDA_VISIBLE_DEVICES=3 python inference.py checkpoints/diffwave_pink_datadependent_gaussian /workspace/LJSpeech-1.1 filelists/test.txt --step 200000 --fast_iter 50 >> logs/inferences/diffwave_pink_datadependent_gaussian.log 2>&1 &
+
+
+versi singularity:
+FAST:
+python inference.py checkpoints/diffwave_pink_normal_gamma /home/s2212015/LJSpeech-1.1 filelists/test.txt --step 200000 --fast --fast_iter 50 >> logs/inference_diffwave_pink_normal_gamma.log 2>&1
+
+SLOW:
+python inference.py checkpoints/diffwave_pink_normal_gamma /home/s2212015/LJSpeech-1.1 filelists/test.txt --step 200000 --fast --fast_iter 50 >> logs/inference_diffwave_pink_normal_gamma_slow.log 2>&1
