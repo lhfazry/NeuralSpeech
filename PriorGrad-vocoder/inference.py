@@ -47,21 +47,21 @@ device = torch.device("cuda")
 
 def load_state_dict(model, state_dict):
     if hasattr(model, 'module') and isinstance(model.module, torch.nn.Module):
-        model.module.load_state_dict(state_dict['model'], map_location=torch.device('cpu'))
+        model.module.load_state_dict(state_dict['model'])
     else:
-        model.load_state_dict(state_dict['model'], map_location=torch.device('cpu'))
+        model.load_state_dict(state_dict['model'])
     step = state_dict['step']
     return model, step
 
 def restore_from_checkpoint(model, model_dir, step, filename='weights'):
     try:
-        checkpoint = torch.load(f'{model_dir}/{filename}-{step}.pt')
+        checkpoint = torch.load(f'{model_dir}/{filename}-{step}.pt', map_location=torch.device('cpu'))
         model, step = load_state_dict(model, checkpoint)
         print("Loaded {}".format(f'{model_dir}/{filename}-{step}.pt'))
         return model, step
     except FileNotFoundError:
         print("Trying to load {}...".format(f'{model_dir}/{filename}.pt'))
-        checkpoint = torch.load(f'{model_dir}/{filename}.pt')
+        checkpoint = torch.load(f'{model_dir}/{filename}.pt', map_location=torch.device('cpu'))
         model, step = load_state_dict(model, checkpoint)
         print("Loaded {} from {} step checkpoint".format(f'{model_dir}/{filename}.pt', step))
         return model, step
