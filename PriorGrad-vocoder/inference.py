@@ -87,6 +87,7 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
         alpha_cum = np.cumprod(alpha)
         noise_level = np.cumprod(1 - beta)
         print(noise_level)
+        print(T)
         #noise_level = torch.tensor(noise_level.astype(np.float32))
 
         T = []
