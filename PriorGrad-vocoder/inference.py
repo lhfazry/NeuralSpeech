@@ -86,7 +86,11 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
         alpha = 1 - beta
         alpha_cum = np.cumprod(alpha)
         noise_level = np.cumprod(1 - beta)
-        print(noise_level)
+
+        if model.params.noise_dist == 2: # gamma
+            gamma_shape = np.cumsum(beta / (alpha * (model.params.gamma_init_scale ** 2)))
+            gamma_shape = torch.tensor(gamma_shape.astype(np.float32))
+
         #noise_level = torch.tensor(noise_level.astype(np.float32))
 
         T = []
@@ -99,7 +103,6 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
                     break
         T = np.array(T, dtype=np.float32)
 
-        print(T)
 
         # Expand rank 2 tensors by adding a batch dimension.
         if len(spectrogram.shape) == 2:
@@ -118,9 +121,9 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
             audio = torch.randn(spectrogram.shape[0], model.params.hop_samples * spectrogram.shape[-1],
                         device=device) * target_std
         elif model.params.noise_dist == 2: # gamma
-            noise_scale_sqrt = noise_level[int(T[0])].unsqueeze(1) ** 0.5
-            gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale).cpu()
-            gamma_shape = model.gamma_shape[int(T[0])].unsqueeze(1).cpu()
+            noise_scale_sqrt = np.expand_dims(noise_level[int(T[0])], axis=1) ** 0.5
+            gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale)
+            gamma_shape = np.expand_dims(gamma_shape[int(T[0])], axis=1)
             audio = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
             audio = audio * target_std
 
@@ -137,9 +140,9 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
                 if model.params.noise_dist == 1: # gaussian
                     noise = torch.randn_like(audio) * target_std
                 elif model.params.noise_dist == 2: # gamma
-                    noise_scale_sqrt = noise_level[int(T[n-1])].unsqueeze(1) ** 0.5
-                    gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale).cpu()
-                    gamma_shape = model.gamma_shape[int(T[n-1])].unsqueeze(1).cpu()
+                    noise_scale_sqrt = np.expand_dims(noise_level[int(T[n-1])], axis=1) ** 0.5
+                    gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale)
+                    gamma_shape = np.expand_dims(gamma_shape[int(T[n-1])], axis=1)
                     noise = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
                     noise = noise * target_std
                     
