@@ -354,7 +354,7 @@ class PriorGradLearner:
                 noise_scale_sqrt = self.noise_level[int(T[0])] ** 0.5
                 gamma_scale = (noise_scale_sqrt * self.params.gamma_init_scale)
                 gamma_shapec = self.gamma_shape[int(T[0])]
-                audio = np.random.gamma(gamma_shapec, gamma_scale, (N, T2)).astype(np.float32) - gamma_shapec * gamma_scale
+                audio = np.random.gamma(gamma_shapec.cpu(), gamma_scale.cpu(), (N, T2)).astype(np.float32) - gamma_shapec.cpu() * gamma_scale
                 audio = torch.tensor(audio, device=device)
                 audio = audio * target_std
 
