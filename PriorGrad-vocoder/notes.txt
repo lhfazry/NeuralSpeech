@@ -58,9 +58,10 @@ SLOW:
 CUDA_VISIBLE_DEVICES=3 python inference.py checkpoints/diffwave_pink_datadependent_gaussian /workspace/LJSpeech-1.1 filelists/test.txt --step 200000 --fast_iter 50 >> logs/inferences/diffwave_pink_datadependent_gaussian_slow.log 2>&1 &
 
 
+4) diffwave_pink_normal_gamma
 versi singularity:
 FAST:
-python inference.py checkpoints/diffwave_pink_normal_gamma /home/s2212015/LJSpeech-1.1 filelists/test.txt --step 200000 --fast --fast_iter 50 >> logs/inference_diffwave_pink_normal_gamma.log 2>&1
+python inference.py checkpoints/diffwave_pink_normal_gamma /home/s2212015/LJSpeech-1.1 filelists/test.txt --step 200000 --fast --fast_iter 50 >> logs/inference/inference_diffwave_pink_normal_gamma.log 2>&1
 
 SLOW:
-python inference.py checkpoints/diffwave_pink_normal_gamma /home/s2212015/LJSpeech-1.1 filelists/test.txt --step 200000 --fast --fast_iter 50 >> logs/inference_diffwave_pink_normal_gamma_slow.log 2>&1
+python inference.py checkpoints/diffwave_pink_normal_gamma /home/s2212015/LJSpeech-1.1 filelists/test.txt --step 200000 --fast --fast_iter 50 >> logs/inference/inference_diffwave_pink_normal_gamma_slow.log 2>&1

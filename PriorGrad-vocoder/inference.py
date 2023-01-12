@@ -47,9 +47,9 @@ device = torch.device("cuda")
 
 def load_state_dict(model, state_dict):
     if hasattr(model, 'module') and isinstance(model.module, torch.nn.Module):
-        model.module.load_state_dict(state_dict['model'])
+        model.module.load_state_dict(state_dict['model'], map_location=torch.device('cpu'))
     else:
-        model.load_state_dict(state_dict['model'])
+        model.load_state_dict(state_dict['model'], map_location=torch.device('cpu'))
     step = state_dict['step']
     return model, step
 
