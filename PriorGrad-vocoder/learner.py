@@ -191,7 +191,7 @@ class PriorGradLearner:
                 noise = None
             elif self.params.noise_dist == 2: # gamma
                 gamma_scale = noise_scale_sqrt * self.params.gamma_init_scale
-                gamma_shape = self.gamma_shape[t].unsqueeze(1)
+                gamma_shape = self.gamma_shape.to(device)[t].unsqueeze(1)
                 noise = np.random.gamma(gamma_shape.cpu(), gamma_scale.cpu(), (N, T)).astype(np.float32)
 
             noise = get_color_noise(N, T, audio.dtype, self.params.noise_color, noise).to(device)
