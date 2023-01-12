@@ -85,6 +85,8 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
         beta = inference_noise_schedule
         alpha = 1 - beta
         alpha_cum = np.cumprod(alpha)
+        noise_level = np.cumprod(1 - beta)
+        #noise_level = torch.tensor(noise_level.astype(np.float32))
 
         T = []
         for s in range(len(inference_noise_schedule)):
@@ -113,7 +115,7 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
             audio = torch.randn(spectrogram.shape[0], model.params.hop_samples * spectrogram.shape[-1],
                         device=device) * target_std
         elif model.params.noise_dist == 2: # gamma
-            noise_scale_sqrt = model.noise_level[T[0]].unsqueeze(1) ** 0.5
+            noise_scale_sqrt = noise_level[T[0]].unsqueeze(1) ** 0.5
             gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale).cpu()
             gamma_shape = model.gamma_shape[T[0]].unsqueeze(1).cpu()
             audio = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
@@ -132,7 +134,7 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
                 if model.params.noise_dist == 1: # gaussian
                     noise = torch.randn_like(audio) * target_std
                 elif model.params.noise_dist == 2: # gamma
-                    noise_scale_sqrt = model.noise_level[T[n]].unsqueeze(1) ** 0.5
+                    noise_scale_sqrt = noise_level[T[n]].unsqueeze(1) ** 0.5
                     gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale).cpu()
                     gamma_shape = model.gamma_shape[T[n-1]].unsqueeze(1).cpu()
                     noise = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
