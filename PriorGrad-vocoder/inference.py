@@ -122,7 +122,7 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
                         device=device) * target_std
         elif model.params.noise_dist == 2: # gamma
             noise_scale_sqrt = noise_level[int(T[0])] ** 0.5
-            gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale)
+            gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale).cpu()
             gamma_shape = gamma_shape[int(T[0])]
             audio = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
             audio = audio * target_std
@@ -141,7 +141,7 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
                     noise = torch.randn_like(audio) * target_std
                 elif model.params.noise_dist == 2: # gamma
                     noise_scale_sqrt = noise_level[int(T[n-1])] ** 0.5
-                    gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale)
+                    gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale).cpu()
                     gamma_shape = gamma_shape[int(T[n-1])]
                     noise = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
                     noise = noise * target_std
