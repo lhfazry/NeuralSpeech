@@ -100,7 +100,7 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
         T = np.array(T, dtype=np.float32)
 
         print(T)
-        
+
         # Expand rank 2 tensors by adding a batch dimension.
         if len(spectrogram.shape) == 2:
             spectrogram = spectrogram.unsqueeze(0)
@@ -118,9 +118,9 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
             audio = torch.randn(spectrogram.shape[0], model.params.hop_samples * spectrogram.shape[-1],
                         device=device) * target_std
         elif model.params.noise_dist == 2: # gamma
-            noise_scale_sqrt = noise_level[T[0]].unsqueeze(1) ** 0.5
+            noise_scale_sqrt = noise_level[int(T[0])].unsqueeze(1) ** 0.5
             gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale).cpu()
-            gamma_shape = model.gamma_shape[T[0]].unsqueeze(1).cpu()
+            gamma_shape = model.gamma_shape[int(T[0])].unsqueeze(1).cpu()
             audio = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
             audio = audio * target_std
 
@@ -137,9 +137,9 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
                 if model.params.noise_dist == 1: # gaussian
                     noise = torch.randn_like(audio) * target_std
                 elif model.params.noise_dist == 2: # gamma
-                    noise_scale_sqrt = noise_level[T[n]].unsqueeze(1) ** 0.5
+                    noise_scale_sqrt = noise_level[int(T[n-1])].unsqueeze(1) ** 0.5
                     gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale).cpu()
-                    gamma_shape = model.gamma_shape[T[n-1]].unsqueeze(1).cpu()
+                    gamma_shape = model.gamma_shape[int(T[n-1])].unsqueeze(1).cpu()
                     noise = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
                     noise = noise * target_std
                     
