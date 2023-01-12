@@ -40,6 +40,7 @@ from argparse import ArgumentParser
 
 from model import PriorGrad
 from learner import _nested_map
+from get_noisy_audio import get_color_noise
 
 device = torch.device("cuda")
 
@@ -100,10 +101,24 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
             spectrogram = spectrogram.unsqueeze(0)
         spectrogram = spectrogram.to(device)
 
-        audio = torch.randn(spectrogram.shape[0], model.params.hop_samples * spectrogram.shape[-1],
-                            device=device) * target_std
-        noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
+        #audio = torch.randn(spectrogram.shape[0], model.params.hop_samples * spectrogram.shape[-1],
+        #                    device=device) * target_std
+        #noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
+        audio = None
+        _, N, T2 = spectrogram.shape
 
+        if model.params.noise_dist == 1: # gaussian
+                audio = torch.randn(spectrogram.shape[0], model.params.hop_samples * spectrogram.shape[-1],
+                            device=device) * target_std
+        elif model.params.noise_dist == 2: # gamma
+            noise_scale_sqrt = model.noise_level[T[0]].unsqueeze(1) ** 0.5
+            gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale).cpu()
+            gamma_shape = model.gamma_shape[T[0]].unsqueeze(1).cpu()
+            audio = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
+            audio = audio * target_std
+
+        audio = get_color_noise(N, T2, audio.dtype, model.params.noise_color, noise).to(device)
+        
         for n in range(len(alpha) - 1, -1, -1):
             c1 = 1 / alpha[n] ** 0.5
             c2 = beta[n] / (1 - alpha_cum[n]) ** 0.5
@@ -111,6 +126,16 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
                                              global_cond).squeeze(1))
             if n > 0:
                 noise = torch.randn_like(audio) * target_std
+
+                if model.params.noise_dist == 1: # gaussian
+                    noise = torch.randn_like(audio) * target_std
+                elif model.params.noise_dist == 2: # gamma
+                    noise_scale_sqrt = model.noise_level[T[n]].unsqueeze(1) ** 0.5
+                    gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale).cpu()
+                    gamma_shape = model.gamma_shape[T[n-1]].unsqueeze(1).cpu()
+                    noise = np.random.gamma(gamma_shape, gamma_scale, (N, T2)).astype(np.float32) - gamma_shape * gamma_scale
+                    noise = noise * target_std
+                    
                 sigma = ((1.0 - alpha_cum[n - 1]) / (1.0 - alpha_cum[n]) * beta[n]) ** 0.5
                 audio += sigma * noise
             audio = torch.clamp(audio, -1.0, 1.0)
