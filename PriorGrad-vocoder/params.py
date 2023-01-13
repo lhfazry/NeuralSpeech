@@ -85,7 +85,7 @@ params = AttrDict(
     inference_noise_schedule=[0.0001, 0.001, 0.01, 0.05, 0.2, 0.5], # T>=50
     # inference_noise_schedule=[0.001, 0.01, 0.05, 0.2] # designed for for T=20
 
-    noise_color=1 # 1 = white, 2 = blue, 3 = violet, 4 = brownian, 5 = pink 
+    noise_color=1, # 1 = white, 2 = blue, 3 = violet, 4 = brownian, 5 = pink 
     noise_dist=2, #1=gaussian, 2=gamma
     gamma_init_scale=0.001
 )
