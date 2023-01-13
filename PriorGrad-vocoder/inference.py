@@ -220,7 +220,7 @@ def main(args):
 
         audio = predict(model, spectrogram, target_std, global_cond=global_cond, fast_sampling=args.fast)
         #sample_name = "{:04d}.wav".format(i + 1)
-        sample_name = features['filename']
+        sample_name = Path(features['filename'][0]).name
         print(sample_name)
 
         torchaudio.save(os.path.join(sample_path, sample_name), audio.cpu(), sample_rate=model.params.sample_rate)
