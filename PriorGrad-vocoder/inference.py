@@ -128,7 +128,7 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
             audio = torch.tensor(audio, device=device)
             audio = audio * target_std
 
-        audio = get_color_noise(N, T2, audio.dtype, model.params.noise_color, audio.cpu()).to(device)
+        audio = get_color_noise(N, T2, spectrogram.dtype, model.params.noise_color, audio.cpu()).to(device)
         
         for n in range(len(alpha) - 1, -1, -1):
             c1 = 1 / alpha[n] ** 0.5

@@ -358,7 +358,7 @@ class PriorGradLearner:
                 audio = torch.tensor(audio, device=device)
                 audio = audio * target_std
 
-            audio = get_color_noise(N, T2, audio.dtype, self.params.noise_color, noise).to(device)
+            audio = get_color_noise(N, T2, spectrogram.dtype, self.params.noise_color, audio).to(device)
 
             for n in range(len(alpha) - 1, -1, -1):
                 c1 = 1 / alpha[n] ** 0.5
