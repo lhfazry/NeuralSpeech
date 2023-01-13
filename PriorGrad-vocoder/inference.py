@@ -203,6 +203,7 @@ def main(args):
     for i, features in tqdm(enumerate(dataset_test)):
         features = _nested_map(features, lambda x: x.to(device) if isinstance(x, torch.Tensor) else x)
         with torch.no_grad():
+            filename = features['filename']
             audio_gt = features['audio']
             spectrogram = features['spectrogram']
             target_std = features['target_std']
@@ -218,7 +219,8 @@ def main(args):
                 global_cond = None
 
         audio = predict(model, spectrogram, target_std, global_cond=global_cond, fast_sampling=args.fast)
-        sample_name = "{:04d}.wav".format(i + 1)
+        #sample_name = "{:04d}.wav".format(i + 1)
+        sample_name = filename
         torchaudio.save(os.path.join(sample_path, sample_name), audio.cpu(), sample_rate=model.params.sample_rate)
 
 if __name__ == '__main__':
