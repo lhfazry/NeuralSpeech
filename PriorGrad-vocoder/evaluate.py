@@ -15,7 +15,8 @@ from scipy.io.wavfile import read
 def main(args):
     sr = 16000
 
-    results = []
+    results = 0
+    total = 0
 
     for fname in os.listdir(args.sdir):
         synthetic_mels = load_mels(os.path.join(args.sdir, fname))
@@ -25,8 +26,10 @@ def main(args):
         print(f"{fname} ==> {result}")
 
         #results.append(dict(fname=fname, score=result))
+        results += result
+        total += 1
 
-    #print(results)
+    print(f"average: {results/total}")
 
 def load_mels(audio_file):
     sr, audio = read(audio_file)
