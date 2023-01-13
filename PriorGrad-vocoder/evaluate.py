@@ -5,6 +5,7 @@ import glob
 import librosa
 from preprocess import get_mel
 import numpy as np
+import torch
 from nnmnkwii.metrics import melcd
 from argparse import ArgumentParser
 from params import params
@@ -29,10 +30,10 @@ def main(args):
         # mel-cepstrum
         #coded_sp_1 = pyworld.code_spectral_envelope(sp1, sr, 24)
         #coded_sp_2 = pyworld.code_spectral_envelope(sp2, sr, 24)
-        synthetic_mels = get_mel(synthetic_wav, params)
-        original_mels = get_mel(original_wav, params)
+        synthetic_mels = get_mel(torch.tensor(synthetic_wav), params)
+        original_mels = get_mel(torch.tensor(original_wav), params)
 
-        result = melcd(synthetic_mels, original_mels , lengths=None)
+        result = melcd(synthetic_mels.numpy(), original_mels.numpy() , lengths=None)
         print(result)
 
         results.append(dict(fname=fname, score=result))
