@@ -30,6 +30,9 @@ def noise_psd(N, T, noise, psd = lambda f: 1):
     if noise is None: # gaussion
         noise = np.random.randn(N, T)
 
+    if torch.is_tensor(noise):
+        noise = noise.cpu()
+        
     #print(f"noise: {noise.shape}")
     X_white = np.fft.rfftn(noise)
     #print(f"X_white: {X_white.shape}")
