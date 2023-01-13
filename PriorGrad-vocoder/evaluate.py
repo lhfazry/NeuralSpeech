@@ -9,6 +9,7 @@ import torch
 from nnmnkwii.metrics import melcd
 from argparse import ArgumentParser
 from params import params
+from scipy.io.wavfile import read
 
 def main(args):
     sr = 16000
@@ -16,8 +17,8 @@ def main(args):
     results = []
 
     for fname in os.listdir(args.sdir):
-        synthetic_wav, _ = librosa.load(os.path.join(args.sdir, fname), sr=sr, mono=True)
-        original_wav, _ = librosa.load(os.path.join(args.odir, fname), sr=sr, mono=True)
+        _, synthetic_wav = read(os.path.join(args.sdir, fname))
+        _, original_wav = read(os.path.join(args.odir, fname))
 
         #synthetic_wav = synthetic_wav.astype(np.float64)
         #f0_1, timeaxis_1 = pyworld.harvest(synthetic_wav, sr, frame_period=5.0, f0_floor=71.0, f0_ceil=800.0)
