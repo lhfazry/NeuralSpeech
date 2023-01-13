@@ -34,14 +34,14 @@ def main(args):
 
         result = melcd(synthetic_mels, original_mels , lengths=None)
         print(result)
-        
+
         results.append(dict(fname=fname, score=result))
 
     print(results)
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Calculate MCD')
-    parser.add_argument('sdir', help='Synthetic directory of waveform')
-    parser.add_argument('odir', help='Original directory of waveform')
+    parser.add_argument('--sdir', help='Synthetic directory of waveform')
+    parser.add_argument('--odir', help='Original directory of waveform')
     
     main(parser.parse_args())
