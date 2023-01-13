@@ -3,9 +3,9 @@ import subprocess
 import sys
 import glob
 import librosa
+import pyworld
 import numpy as np
 from nnmnkwii.metrics import melcd
-import pyworld
 from argparse import ArgumentParser
 
 def main(args):
