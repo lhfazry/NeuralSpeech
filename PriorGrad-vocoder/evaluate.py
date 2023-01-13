@@ -13,9 +13,9 @@ def main(args):
 
     results = []
 
-    for fname in os.listdir(args.synthetic_dir):
-        synthetic_wav, _ = librosa.load(os.path.join(args.synthetic_dir, fname), sr=sr, mono=True)
-        original_wav, _ = librosa.load(os.path.join(args.original_dir, fname), sr=sr, mono=True)
+    for fname in os.listdir(args.sdir):
+        synthetic_wav, _ = librosa.load(os.path.join(args.sdir, fname), sr=sr, mono=True)
+        original_wav, _ = librosa.load(os.path.join(args.odir, fname), sr=sr, mono=True)
 
         synthetic_wav = synthetic_wav.astype(np.float64)
         f0_1, timeaxis_1 = pyworld.harvest(synthetic_wav, sr, frame_period=5.0, f0_floor=71.0, f0_ceil=800.0)
@@ -37,7 +37,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Calculate MCD')
-    parser.add_argument('synthetic_dir', help='Synthetic directory of waveform')
-    parser.add_argument('original_dir', help='Original directory of waveform')
+    parser.add_argument('sdir', help='Synthetic directory of waveform')
+    parser.add_argument('odir', help='Original directory of waveform')
     
     main(parser.parse_args())
