@@ -22,11 +22,11 @@ def main(args):
         original_mels = load_mels(os.path.join(args.odir, fname))
 
         result = melcd(synthetic_mels.numpy(), original_mels.numpy() , lengths=None)
-        print(result)
+        print(f"{fname} ==> {result}")
 
-        results.append(dict(fname=fname, score=result))
+        #results.append(dict(fname=fname, score=result))
 
-    print(results)
+    #print(results)
 
 def load_mels(audio_file):
     sr, audio = read(audio_file)
