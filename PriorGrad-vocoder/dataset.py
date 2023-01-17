@@ -168,21 +168,13 @@ class NumpyDataset(torch.utils.data.Dataset):
 
         #print(f"glot.shape: {glot.shape}")
 
-        if self.params.with_glot:
-            return {
-                'audio': audio, # [T_time]
-                'glot': glot,
-                'spectrogram': spectrogram[0].T, # [T_mel, 80]
-                'target_std': target_std[0], # [T_mel],
-                'filename': audio_filename
-            }
-        else:
-            return {
-                'audio': audio, # [T_time]
-                'spectrogram': spectrogram[0].T, # [T_mel, 80]
-                'target_std': target_std[0], # [T_mel],
-                'filename': audio_filename
-            }
+        return {
+            'audio': audio, # [T_time]
+            'glot': glot,
+            'spectrogram': spectrogram[0].T, # [T_mel, 80]
+            'target_std': target_std[0], # [T_mel],
+            'filename': audio_filename
+        }
 
 
 class Collator:
@@ -209,10 +201,13 @@ class Collator:
             assert record['audio'].shape == record['target_std'].shape
 
         audio = torch.stack([record['audio'] for record in minibatch if 'audio' in record])
-        glot = torch.stack([record['glot'] for record in minibatch if 'glot' in record])
         spectrogram = torch.stack([record['spectrogram'] for record in minibatch if 'spectrogram' in record])
         target_std = torch.stack([record['target_std'] for record in minibatch if 'target_std' in record])
         filename = [record['filename'] for record in minibatch if 'filename' in record]
+
+        glot = None
+        if self.params.with_glot:
+            glot = torch.stack([record['glot'] for record in minibatch if 'glot' in record])
         
         return {
             'audio': audio,
