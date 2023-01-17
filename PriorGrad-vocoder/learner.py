@@ -217,6 +217,7 @@ class PriorGradLearner:
                 features = _nested_map(features, lambda x: x.to(device) if isinstance(x, torch.Tensor) else x)
 
                 audio = features['audio']
+                glot = features['glot']
                 spectrogram = features['spectrogram']
                 target_std = features['target_std']
 
@@ -242,9 +243,9 @@ class PriorGradLearner:
                 noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
 
                 if hasattr(self.model, 'module'):
-                    predicted = self.model.module(noisy_audio, spectrogram, t, global_cond)
+                    predicted = self.model.module(noisy_audio, glot, spectrogram, t, global_cond)
                 else:
-                    predicted = self.model(noisy_audio, spectrogram, t, global_cond)
+                    predicted = self.model(noisy_audio, glot, spectrogram, t, global_cond)
 
                 if self.use_prior:
                     if self.use_l2loss:
