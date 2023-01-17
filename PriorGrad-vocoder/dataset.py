@@ -163,8 +163,8 @@ class NumpyDataset(torch.utils.data.Dataset):
                 glot = glot[start:end]
 
             if glot.shape[0] < audio.shape[0]:
-                pad = (audio.shape[0] - glot.shape[0])
-                glot = F.pad(glot, pad, 'constant', 0)
+                pad = audio.shape[0] - glot.shape[0]
+                glot = F.pad(glot, (pad,), 'constant', 0)
 
         print(f"glot.shape: {glot.shape}")
 
