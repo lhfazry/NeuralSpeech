@@ -127,7 +127,7 @@ class NumpyDataset(torch.utils.data.Dataset):
         if (audio.shape[0] % self.params.hop_samples) != 0:
             audio = audio[:-(audio.shape[0] % self.params.hop_samples)]
         audio = torch.FloatTensor(audio)
-        print(f"audio.shape: {audio.shape}")
+        #print(f"audio.shape: {audio.shape}")
 
         glot = None
         if self.params.with_glot:
@@ -166,7 +166,7 @@ class NumpyDataset(torch.utils.data.Dataset):
                 pad = audio.shape[0] - glot.shape[0]
                 glot = F.pad(glot, (0, pad), 'constant', 0)
 
-        print(f"glot.shape: {glot.shape}")
+        #print(f"glot.shape: {glot.shape}")
 
         return {
             'audio': audio, # [T_time]
