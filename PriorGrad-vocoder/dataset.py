@@ -168,13 +168,21 @@ class NumpyDataset(torch.utils.data.Dataset):
 
         #print(f"glot.shape: {glot.shape}")
 
-        return {
-            'audio': audio, # [T_time]
-            'glot': glot,
-            'spectrogram': spectrogram[0].T, # [T_mel, 80]
-            'target_std': target_std[0], # [T_mel],
-            'filename': audio_filename
-        }
+        if self.params.with_glot:
+            return {
+                'audio': audio, # [T_time]
+                'glot': glot,
+                'spectrogram': spectrogram[0].T, # [T_mel, 80]
+                'target_std': target_std[0], # [T_mel],
+                'filename': audio_filename
+            }
+        else:
+            return {
+                'audio': audio, # [T_time]
+                'spectrogram': spectrogram[0].T, # [T_mel, 80]
+                'target_std': target_std[0], # [T_mel],
+                'filename': audio_filename
+            }
 
 
 class Collator:
