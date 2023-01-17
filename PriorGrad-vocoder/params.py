@@ -89,5 +89,5 @@ params = AttrDict(
     noise_dist=1, #1=gaussian, 2=gamma
     gamma_init_scale=0.001,
 
-    with_glot=True
+    with_glot=False
 )
