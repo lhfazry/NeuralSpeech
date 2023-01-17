@@ -221,6 +221,8 @@ class PriorGradLearner:
                 spectrogram = features['spectrogram']
                 target_std = features['target_std']
 
+                print(f"audio.shape: {audio.shape}, glot.shape: {glot.shape}")
+
                 if self.condition_prior:
                     target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
                     spectrogram = torch.cat([spectrogram, target_std_specdim], dim=1)
