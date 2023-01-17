@@ -32,6 +32,7 @@ import numpy as np
 import os
 import random
 import torch
+import torch.nn.functional as F
 from tqdm import tqdm
 from torch.utils.data.distributed import DistributedSampler
 from pathlib import Path
@@ -134,7 +135,7 @@ class NumpyDataset(torch.utils.data.Dataset):
             glot = np.load(glot_path)
             glot = glot / MAX_WAV_VALUE
             glot = normalize(glot) * 0.95
-            glot = glot[:len(audio)]
+            glot = glot[:audio.shape[0]]
             glot = torch.FloatTensor(glot)
             print(f"glot.shape: {glot.shape}")
 
@@ -160,6 +161,12 @@ class NumpyDataset(torch.utils.data.Dataset):
             if self.is_training:
                 # get segment of glot
                 glot = glot[start:end]
+
+            if glot.shape[0] < audio.shape[0]:
+                pad = (audio.shape[0] - glot.shape[0])
+                glot = F.pad(glot, pad, 'constant', 0)
+
+        print(f"glot.shape: {glot.shape}")
 
         return {
             'audio': audio, # [T_time]
