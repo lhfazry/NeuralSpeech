@@ -164,15 +164,18 @@ class PriorGradLearner:
 
         #print(f"train_step => audio.shape: {audio.shape}, glot.shape: {glot.shape}")
 
-        if self.condition_prior:
-            target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
-            spectrogram = torch.cat([spectrogram, target_std_specdim], dim=1)
-            global_cond = None
-        elif self.condition_prior_global:
-            target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
-            global_cond = target_std_specdim
-        else:
-            global_cond = None
+        if self.params.use_mels:
+            if self.condition_prior:
+                target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
+                spectrogram = torch.cat([spectrogram, target_std_specdim], dim=1)
+                global_cond = None
+            elif self.condition_prior_global:
+                target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
+                global_cond = target_std_specdim
+            else:
+                global_cond = None
+        else: 
+            target_std = 1.0
 
         N, T = audio.shape
         device = audio.device
@@ -224,16 +227,18 @@ class PriorGradLearner:
                 target_std = features['target_std']
 
                 #print(f"run_valid_loop => audio.shape: {audio.shape}, glot.shape: {glot.shape}")
-
-                if self.condition_prior:
-                    target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
-                    spectrogram = torch.cat([spectrogram, target_std_specdim], dim=1)
-                    global_cond = None
-                elif self.condition_prior_global:
-                    target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
-                    global_cond = target_std_specdim
+                if self.params.use_mels:
+                    if self.condition_prior:
+                        target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
+                        spectrogram = torch.cat([spectrogram, target_std_specdim], dim=1)
+                        global_cond = None
+                    elif self.condition_prior_global:
+                        target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
+                        global_cond = target_std_specdim
+                    else:
+                        global_cond = None
                 else:
-                    global_cond = None
+                    target_std = 1.0
 
                 N, T = audio.shape
                 device = audio.device
@@ -305,11 +310,13 @@ class PriorGradLearner:
             T = np.array(T, dtype=np.float32)
 
             # Expand rank 2 tensors by adding a batch dimension.
-            if len(spectrogram.shape) == 2:
-                spectrogram = spectrogram.unsqueeze(0)
-            spectrogram = spectrogram.to(device)
-
-            audio = torch.randn(spectrogram.shape[0], self.params.hop_samples * spectrogram.shape[-1],
+            if self.params.use_mels:
+                if len(spectrogram.shape) == 2:
+                    spectrogram = spectrogram.unsqueeze(0)
+                spectrogram = spectrogram.to(device)
+            
+            N = spectrogram.shape[0] if spectrogram is not None else glot.shape[0]
+            audio = torch.randn(N, self.params.hop_samples * spectrogram.shape[-1],
                                 device=device) * target_std
             noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
 
@@ -333,7 +340,10 @@ class PriorGradLearner:
     def _write_summary(self, step, features, loss):
         writer = self.summary_writer or SummaryWriter(self.model_dir, purge_step=step)
         writer.add_audio('feature/audio', features['audio'][0], step, sample_rate=self.params.sample_rate)
-        writer.add_image('feature/spectrogram', torch.flip(features['spectrogram'][:1], [1]), step)
+
+        if self.params.use_mels:
+            writer.add_image('feature/spectrogram', torch.flip(features['spectrogram'][:1], [1]), step)
+        
         writer.add_scalar('train/loss', loss, step)
         writer.add_scalar('train/grad_norm', self.grad_norm, step)
         writer.flush()

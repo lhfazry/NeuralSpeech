@@ -130,7 +130,7 @@ class NumpyDataset(torch.utils.data.Dataset):
         #print(f"audio.shape: {audio.shape}")
 
         glot = None
-        if self.params.with_glot:
+        if self.params.use_glot:
             glot_path = os.path.join(pfilename.parents[1], 'glots', pfilename.stem + '-glot.npy')
             glot = np.load(glot_path)
             glot = glot / MAX_WAV_VALUE
@@ -145,8 +145,12 @@ class NumpyDataset(torch.utils.data.Dataset):
             end = start + (self.params.crop_mel_frames * self.params.hop_samples)
             audio = audio[start:end]
 
-        spectrogram = get_mel(audio, self.params)
-        energy = (spectrogram.exp()).sum(1).sqrt()
+        spectrogram = None
+        if self.params.use_mels:
+            spectrogram = get_mel(audio, self.params)
+        
+        if spectrogram is not None:
+            energy = (spectrogram.exp()).sum(1).sqrt()
 
         if self.use_prior:
             if self.max_energy_override is not None:
@@ -154,10 +158,11 @@ class NumpyDataset(torch.utils.data.Dataset):
             # normalize to 0~1
             target_std = torch.clamp((energy - self.energy_min) / (self.energy_max - self.energy_min), self.std_min, None)
         else:
-            target_std = torch.ones_like(spectrogram[:, 0, :])
+            if spectrogram is not None:
+                target_std = torch.ones_like(spectrogram[:, 0, :])
 
         # add glot
-        if self.params.with_glot:
+        if self.params.use_glot:
             if self.is_training:
                 # get segment of glot
                 glot = glot[start:end]
@@ -171,8 +176,8 @@ class NumpyDataset(torch.utils.data.Dataset):
         return {
             'audio': audio, # [T_time]
             'glot': glot,
-            'spectrogram': spectrogram[0].T, # [T_mel, 80]
-            'target_std': target_std[0], # [T_mel],
+            'spectrogram': spectrogram[0].T if spectrogram is not None else None, # [T_mel, 80]
+            'target_std': target_std[0] is target_std if not None else None, # [T_mel],
             'filename': audio_filename
         }
 
@@ -186,14 +191,16 @@ class Collator:
         samples_per_frame = self.params.hop_samples
         for record in minibatch:
             #Filter out records that aren't long enough.
-            if len(record['spectrogram']) < self.params.crop_mel_frames:
-                del record['spectrogram']
-                del record['audio']
-                del record['glot']
-                continue
+            if record['spectrogram'] is not None:
+                if len(record['spectrogram']) < self.params.crop_mel_frames:
+                    del record['spectrogram']
+                    del record['audio']
+                    del record['glot']
+                    continue
 
-            record['spectrogram'] = record['spectrogram'].T
-            record['target_std'] = record['target_std']
+                record['spectrogram'] = record['spectrogram'].T
+                record['target_std'] = record['target_std']
+
             record['target_std'] = torch.repeat_interleave(record['target_std'], samples_per_frame)
             record['audio'] = record['audio']
             #record['glot'] = record['glot']
@@ -201,12 +208,14 @@ class Collator:
             assert record['audio'].shape == record['target_std'].shape
 
         audio = torch.stack([record['audio'] for record in minibatch if 'audio' in record])
-        spectrogram = torch.stack([record['spectrogram'] for record in minibatch if 'spectrogram' in record])
-        target_std = torch.stack([record['target_std'] for record in minibatch if 'target_std' in record])
         filename = [record['filename'] for record in minibatch if 'filename' in record]
 
+        if self.params.use_mels:
+            spectrogram = torch.stack([record['spectrogram'] for record in minibatch if 'spectrogram' in record])
+            target_std = torch.stack([record['target_std'] for record in minibatch if 'target_std' in record])
+
         glot = None
-        if self.params.with_glot:
+        if self.params.use_glot:
             glot = torch.stack([record['glot'] for record in minibatch if 'glot' in record])
         
         return {

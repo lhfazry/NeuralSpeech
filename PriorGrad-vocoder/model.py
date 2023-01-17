@@ -113,8 +113,8 @@ class ResidualBlock(nn.Module):
         diffusion_step = self.diffusion_projection(diffusion_step).unsqueeze(-1)
         conditioner = self.conditioner_projection(conditioner)
 
-        y = (x + glot + diffusion_step) if self.params.with_glot else (x + diffusion_step)
-        y = self.dilated_conv(y) + conditioner
+        y = (x + glot + diffusion_step) if self.params.use_glot else (x + diffusion_step)
+        y = (self.dilated_conv(y) + conditioner)  if self.params.use_mels else self.dilated_conv(y)
 
         if conditioner_global is not None:
             y = y + self.conditioner_projection_global(conditioner_global)
@@ -150,11 +150,14 @@ class PriorGrad(nn.Module):
 
         self.input_projection = Conv1d(1, params.residual_channels, 1)
 
-        if self.params.with_glot:
+        if self.params.use_glot:
             self.glot_projection = Conv1d(1, params.residual_channels, 1)
 
         self.diffusion_embedding = DiffusionEmbedding(len(params.noise_schedule))
-        self.spectrogram_upsampler = SpectrogramUpsampler(self.n_mels)
+
+        if self.params.use_mels:
+            self.spectrogram_upsampler = SpectrogramUpsampler(self.n_mels)
+
         if self.condition_prior_global:
             self.global_condition_upsampler = SpectrogramUpsampler(self.n_cond)
         self.residual_layers = nn.ModuleList([
@@ -173,13 +176,16 @@ class PriorGrad(nn.Module):
         x = self.input_projection(x)
         x = F.relu(x)
 
-        if self.params.with_glot:
+        if self.params.use_glot:
             glot = glot.unsqueeze(1)
             glot = self.input_projection(glot)
             glot = F.relu(glot)
 
         diffusion_step = self.diffusion_embedding(diffusion_step)
-        spectrogram = self.spectrogram_upsampler(spectrogram)
+
+        if self.params.use_mels:
+            spectrogram = self.spectrogram_upsampler(spectrogram)
+        
         if global_cond is not None:
             global_cond = self.global_condition_upsampler(global_cond)
 
