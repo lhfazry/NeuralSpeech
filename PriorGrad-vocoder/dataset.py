@@ -137,7 +137,7 @@ class NumpyDataset(torch.utils.data.Dataset):
             glot = normalize(glot) * 0.95
             glot = glot[:audio.shape[0]]
             glot = torch.FloatTensor(glot)
-            print(f"glot.shape: {glot.shape}")
+            #print(f"glot.shape: {glot.shape}")
 
         if self.is_training:
             # get segment of audio
