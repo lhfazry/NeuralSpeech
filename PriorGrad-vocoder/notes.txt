@@ -86,3 +86,9 @@ python inference.py checkpoints/diffwave_pink_datadependent_gamma /home/s2212015
 
 SLOW:
 python inference.py checkpoints/diffwave_pink_datadependent_gamma /home/s2212015/LJSpeech-1.1 filelists/test.txt --step 200000 --fast --fast_iter 50 >> logs/inference/diffwave_pink_datadependent_gamma_slow.log 2>&1
+
+
+6) diffglot
+versi singularity:
+FAST:
+python inference.py checkpoints/diffglot /home/s2212015/LJSpeech-1.1 filelists/test.txt --step 200000 --fast_iter 50 >> logs/inference/diffglot.log 2>&1
