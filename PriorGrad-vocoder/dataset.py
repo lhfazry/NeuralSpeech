@@ -128,6 +128,15 @@ class NumpyDataset(torch.utils.data.Dataset):
             audio = audio[:-(audio.shape[0] % self.params.hop_samples)]
         audio = torch.FloatTensor(audio)
 
+        glot = None
+        if self.params.with_glot:
+            glot_path = os.path.join(pfilename.parents[1], 'glots', pfilename.stem + '-glot.npy')
+            glot = np.load(glot_path)
+            glot = glot / MAX_WAV_VALUE
+            glot = normalize(glot) * 0.95
+            glot = glot[:len(audio)]
+            glot = torch.FloatTensor(glot)
+
         if self.is_training:
             # get segment of audio
             start = random.randint(0, audio.shape[0] - (self.params.crop_mel_frames * self.params.hop_samples))
@@ -144,21 +153,9 @@ class NumpyDataset(torch.utils.data.Dataset):
             target_std = torch.clamp((energy - self.energy_min) / (self.energy_max - self.energy_min), self.std_min, None)
         else:
             target_std = torch.ones_like(spectrogram[:, 0, :])
-        
-        glot = None
 
         # add glot
         if self.params.with_glot:
-            glot_path = os.path.join(pfilename.parents[1], 'glots', pfilename.stem + '-glot.npy')
-            glot = np.load(glot_path)
-            glot = glot / MAX_WAV_VALUE
-            glot = normalize(glot) * 0.95
-
-            if (glot.shape[0] % self.params.hop_samples) != 0:
-                glot = glot[:-(glot.shape[0] % self.params.hop_samples)]
-
-            glot = torch.FloatTensor(glot)
-
             if self.is_training:
                 # get segment of glot
                 glot = glot[start:end]
