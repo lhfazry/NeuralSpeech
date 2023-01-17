@@ -99,8 +99,9 @@ class SpectrogramUpsampler(nn.Module):
 
 
 class ResidualBlock(nn.Module):
-    def __init__(self, n_mels, residual_channels, dilation, n_cond_global=None):
+    def __init__(self, params, n_mels, residual_channels, dilation, n_cond_global=None):
         super().__init__()
+        self.params = params
         self.dilated_conv = Conv1d(residual_channels, 2 * residual_channels, 3, padding=dilation, dilation=dilation)
         self.diffusion_projection = Linear(512, residual_channels)
         self.conditioner_projection = Conv1d(n_mels, 2 * residual_channels, 1)
@@ -108,11 +109,11 @@ class ResidualBlock(nn.Module):
             self.conditioner_projection_global = Conv1d(n_cond_global, 2 * residual_channels, 1)
         self.output_projection = Conv1d(residual_channels, 2 * residual_channels, 1)
 
-    def forward(self, x, conditioner, diffusion_step, conditioner_global=None):
+    def forward(self, x, glot, conditioner, diffusion_step, conditioner_global=None):
         diffusion_step = self.diffusion_projection(diffusion_step).unsqueeze(-1)
         conditioner = self.conditioner_projection(conditioner)
 
-        y = x + diffusion_step
+        y = (x + glot + diffusion_step) if self.params.with_glot else (x + diffusion_step)
         y = self.dilated_conv(y) + conditioner
 
         if conditioner_global is not None:
@@ -126,6 +127,7 @@ class ResidualBlock(nn.Module):
         return (x + residual) / sqrt(2.0), skip
 
 
+# input ==> audio, spectrogram, torch.tensor([T[n]], device=audio.device), global_cond
 class PriorGrad(nn.Module):
     def __init__(self, params):
         super().__init__()
@@ -147,12 +149,16 @@ class PriorGrad(nn.Module):
             self.n_cond = 1
 
         self.input_projection = Conv1d(1, params.residual_channels, 1)
+
+        if self.params.with_glot:
+            self.glot_projection = Conv1d(1, params.residual_channels, 1)
+
         self.diffusion_embedding = DiffusionEmbedding(len(params.noise_schedule))
         self.spectrogram_upsampler = SpectrogramUpsampler(self.n_mels)
         if self.condition_prior_global:
             self.global_condition_upsampler = SpectrogramUpsampler(self.n_cond)
         self.residual_layers = nn.ModuleList([
-            ResidualBlock(self.n_mels, params.residual_channels, 2 ** (i % params.dilation_cycle_length),
+            ResidualBlock(self.params, self.n_mels, params.residual_channels, 2 ** (i % params.dilation_cycle_length),
                           n_cond_global=self.n_cond)
             for i in range(params.residual_layers)
         ])
@@ -167,6 +173,11 @@ class PriorGrad(nn.Module):
         x = self.input_projection(x)
         x = F.relu(x)
 
+        if self.params.with_glot:
+            glot = glot.unsqueeze(1)
+            glot = self.input_projection(glot)
+            glot = F.relu(glot)
+
         diffusion_step = self.diffusion_embedding(diffusion_step)
         spectrogram = self.spectrogram_upsampler(spectrogram)
         if global_cond is not None:
@@ -174,7 +185,7 @@ class PriorGrad(nn.Module):
 
         skip = []
         for layer in self.residual_layers:
-            x, skip_connection = layer(x, spectrogram, diffusion_step, global_cond)
+            x, skip_connection = layer(x, glot, spectrogram, diffusion_step, global_cond)
             skip.append(skip_connection)
 
         x = torch.sum(torch.stack(skip), dim=0) / sqrt(len(self.residual_layers))

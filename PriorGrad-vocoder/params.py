@@ -88,4 +88,6 @@ params = AttrDict(
     noise_color=5, # 1 = white, 2 = blue, 3 = violet, 4 = brownian, 5 = pink 
     noise_dist=1, #1=gaussian, 2=gamma
     gamma_init_scale=0.001
+
+    with_glot=True
 )

@@ -40,6 +40,7 @@ from argparse import ArgumentParser
 
 from model import PriorGrad
 from learner import _nested_map
+from get_noisy_audio import get_color_noise
 
 device = torch.device("cuda")
 
@@ -54,13 +55,13 @@ def load_state_dict(model, state_dict):
 
 def restore_from_checkpoint(model, model_dir, step, filename='weights'):
     try:
-        checkpoint = torch.load(f'{model_dir}/{filename}-{step}.pt')
+        checkpoint = torch.load(f'{model_dir}/{filename}-{step}.pt', map_location=torch.device('cpu'))
         model, step = load_state_dict(model, checkpoint)
         print("Loaded {}".format(f'{model_dir}/{filename}-{step}.pt'))
         return model, step
     except FileNotFoundError:
         print("Trying to load {}...".format(f'{model_dir}/{filename}.pt'))
-        checkpoint = torch.load(f'{model_dir}/{filename}.pt')
+        checkpoint = torch.load(f'{model_dir}/{filename}.pt', map_location=torch.device('cpu'))
         model, step = load_state_dict(model, checkpoint)
         print("Loaded {} from {} step checkpoint".format(f'{model_dir}/{filename}.pt', step))
         return model, step
@@ -84,6 +85,13 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
         beta = inference_noise_schedule
         alpha = 1 - beta
         alpha_cum = np.cumprod(alpha)
+        noise_level = np.cumprod(1 - beta)
+
+        if model.params.noise_dist == 2: # gamma
+            gamma_shape = np.cumsum(beta / (alpha * (model.params.gamma_init_scale ** 2)))
+            #gamma_shape = torch.tensor(gamma_shape.astype(np.float32))
+
+        #noise_level = torch.tensor(noise_level.astype(np.float32))
 
         T = []
         for s in range(len(inference_noise_schedule)):
@@ -95,15 +103,33 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
                     break
         T = np.array(T, dtype=np.float32)
 
+
         # Expand rank 2 tensors by adding a batch dimension.
         if len(spectrogram.shape) == 2:
             spectrogram = spectrogram.unsqueeze(0)
         spectrogram = spectrogram.to(device)
 
-        audio = torch.randn(spectrogram.shape[0], model.params.hop_samples * spectrogram.shape[-1],
-                            device=device) * target_std
-        noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
+        #audio = torch.randn(spectrogram.shape[0], model.params.hop_samples * spectrogram.shape[-1],
+        #                    device=device) * target_std
+        #noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
+        audio = None
+        N, _, _ = spectrogram.shape
+        T2 = model.params.hop_samples * spectrogram.shape[-1]
+        #print(f"N: {N}, T2: {T2}")
 
+        if model.params.noise_dist == 1: # gaussian
+            audio = torch.randn(spectrogram.shape[0], model.params.hop_samples * spectrogram.shape[-1],
+                        device=device) * target_std
+        elif model.params.noise_dist == 2: # gamma
+            noise_scale_sqrt = noise_level[int(T[0])] ** 0.5
+            gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale)
+            gamma_shapec = gamma_shape[int(T[0])]
+            audio = np.random.gamma(gamma_shapec, gamma_scale, (N, T2)).astype(np.float32) - gamma_shapec * gamma_scale
+            audio = torch.tensor(audio, device=device)
+            audio = audio * target_std
+
+        audio = get_color_noise(N, T2, spectrogram.dtype, model.params.noise_color, audio.cpu()).to(device)
+        
         for n in range(len(alpha) - 1, -1, -1):
             c1 = 1 / alpha[n] ** 0.5
             c2 = beta[n] / (1 - alpha_cum[n]) ** 0.5
@@ -111,6 +137,17 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
                                              global_cond).squeeze(1))
             if n > 0:
                 noise = torch.randn_like(audio) * target_std
+
+                if model.params.noise_dist == 1: # gaussian
+                    noise = torch.randn_like(audio) * target_std
+                elif model.params.noise_dist == 2: # gamma
+                    noise_scale_sqrt = noise_level[int(T[n-1])] ** 0.5
+                    gamma_scale = (noise_scale_sqrt * model.params.gamma_init_scale)
+                    gamma_shapec = gamma_shape[int(T[n-1])]
+                    noise = np.random.gamma(gamma_shapec, gamma_scale, (N, T2)).astype(np.float32) - gamma_shapec * gamma_scale
+                    noise = torch.tensor(noise, device=device)
+                    noise = noise * target_std
+                    
                 sigma = ((1.0 - alpha_cum[n - 1]) / (1.0 - alpha_cum[n]) * beta[n]) ** 0.5
                 audio += sigma * noise
             audio = torch.clamp(audio, -1.0, 1.0)
@@ -166,6 +203,7 @@ def main(args):
     for i, features in tqdm(enumerate(dataset_test)):
         features = _nested_map(features, lambda x: x.to(device) if isinstance(x, torch.Tensor) else x)
         with torch.no_grad():
+            filename = features['filename']
             audio_gt = features['audio']
             spectrogram = features['spectrogram']
             target_std = features['target_std']
@@ -181,7 +219,9 @@ def main(args):
                 global_cond = None
 
         audio = predict(model, spectrogram, target_std, global_cond=global_cond, fast_sampling=args.fast)
-        sample_name = "{:04d}.wav".format(i + 1)
+        #sample_name = "{:04d}.wav".format(i + 1)
+        sample_name = Path(features['filename'][0]).name
+
         torchaudio.save(os.path.join(sample_path, sample_name), audio.cpu(), sample_rate=model.params.sample_rate)
 
 if __name__ == '__main__':
