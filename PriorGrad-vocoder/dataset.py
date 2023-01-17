@@ -117,7 +117,6 @@ class NumpyDataset(torch.utils.data.Dataset):
         pfilename = Path(audio_filename)
         sr, audio = read(audio_filename)
         
-        
         if self.params.sample_rate != sr:
             raise ValueError(f'Invalid sample rate {sr}.')
         audio = audio / MAX_WAV_VALUE
@@ -127,6 +126,7 @@ class NumpyDataset(torch.utils.data.Dataset):
         if (audio.shape[0] % self.params.hop_samples) != 0:
             audio = audio[:-(audio.shape[0] % self.params.hop_samples)]
         audio = torch.FloatTensor(audio)
+        print(f"audio.shape: {audio.shape}")
 
         glot = None
         if self.params.with_glot:
@@ -136,6 +136,7 @@ class NumpyDataset(torch.utils.data.Dataset):
             glot = normalize(glot) * 0.95
             glot = glot[:len(audio)]
             glot = torch.FloatTensor(glot)
+            print(f"glot.shape: {glot.shape}")
 
         if self.is_training:
             # get segment of audio
