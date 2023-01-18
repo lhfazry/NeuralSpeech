@@ -160,6 +160,8 @@ class NumpyDataset(torch.utils.data.Dataset):
         else:
             target_std = torch.ones_like(spectrogram[:, 0, :])
 
+        print(f"spectrogram.shape: {spectrogram.shape}, target_std: {target_std.shape}")
+
         # add glot
         if self.params.use_glot:
             if self.is_training:

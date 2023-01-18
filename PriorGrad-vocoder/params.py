@@ -90,5 +90,5 @@ params = AttrDict(
     gamma_init_scale=0.001,
 
     use_glot=True,
-    use_mels=False,
+    use_mels=True,
 )
