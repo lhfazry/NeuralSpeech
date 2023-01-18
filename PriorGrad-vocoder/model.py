@@ -116,6 +116,8 @@ class ResidualBlock(nn.Module):
         y = x + diffusion_step #if self.params.use_glot else x + diffusion_step
         y = self.dilated_conv(y)
 
+        print(f"y.shape: {y.shape}, glot.shape: {glot.shape}")
+        
         if self.params.use_glot:
             y = y + glot
 
