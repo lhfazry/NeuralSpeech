@@ -159,7 +159,8 @@ class NumpyDataset(torch.utils.data.Dataset):
             target_std = torch.clamp((energy - self.energy_min) / (self.energy_max - self.energy_min), self.std_min, None)
         else:
             #target_std = torch.ones_like(spectrogram[:, 0, :])
-            target_std = torch.ones(1, self.params.crop_mel_frames)
+            #target_std = torch.ones(1, self.params.crop_mel_frames)
+            target_std = torch.ones_like(audio)
 
         #print(f"spectrogram.shape: {spectrogram.shape}, target_std: {target_std.shape}")
 
