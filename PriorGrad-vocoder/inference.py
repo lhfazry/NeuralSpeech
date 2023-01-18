@@ -121,9 +121,10 @@ def predict(model, audio_gt, glot, spectrogram, target_std, global_cond=None, fa
                 audio += sigma * noise
 
             audio = torch.clamp(audio, -1.0, 1.0)
-            audios.append(audio)
 
             if model.params.acc_pred:
+                audios.append(audio)
+                
                 if len(audios) - model.params.acc_pred_step < 0:    
                     indexes = [len(audios) - i - 1 for i in range(model.params.acc_pred_step - len(audios))]
                 else:
@@ -133,7 +134,9 @@ def predict(model, audio_gt, glot, spectrogram, target_std, global_cond=None, fa
                 acc = torch.mean(torch.stack([audios[i] for i in indexes]), dim=0)    
                 audios[len(audios) - 1] = acc
 
-        del audios
+        if model.params.acc_pred:
+            audio = audios[len(audios) - 1]
+            del audios
 
         return audio
 
