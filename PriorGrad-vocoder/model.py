@@ -104,28 +104,35 @@ class ResidualBlock(nn.Module):
         self.params = params
         self.dilated_conv = Conv1d(residual_channels, 2 * residual_channels, 3, padding=dilation, dilation=dilation)
         self.diffusion_projection = Linear(512, residual_channels)
-        self.conditioner_projection = Conv1d(n_mels, 2 * residual_channels, 1)
+
+        if self.params.use_glot:
+            self.glot_projection = Conv1d(residual_channels, 2 * residual_channels, 1)
+
+        if self.params.use_mels:
+            self.conditioner_projection = Conv1d(n_mels, 2 * residual_channels, 1)
+        
         if n_cond_global is not None:
             self.conditioner_projection_global = Conv1d(n_cond_global, 2 * residual_channels, 1)
+
         self.output_projection = Conv1d(residual_channels, 2 * residual_channels, 1)
 
     def forward(self, x, glot, conditioner, diffusion_step, conditioner_global=None):
-        print(f"x.shape: {x.shape}")
-        print(f"diffusion_step.shape: {diffusion_step.shape}, conditioner.shape: {conditioner.shape}")
+        #print(f"x.shape: {x.shape}")
+        #print(f"diffusion_step.shape: {diffusion_step.shape}, conditioner.shape: {conditioner.shape}")
         diffusion_step = self.diffusion_projection(diffusion_step).unsqueeze(-1)
-        conditioner = self.conditioner_projection(conditioner)
-        print(f"diffusion_step.shape: {diffusion_step.shape}, conditioner.shape: {conditioner.shape}")
+    
+        #print(f"diffusion_step.shape: {diffusion_step.shape}, conditioner.shape: {conditioner.shape}")
 
         y = x + diffusion_step #if self.params.use_glot else x + diffusion_step
         y = self.dilated_conv(y)
 
-        print(f"y.shape: {y.shape}, glot.shape: {glot.shape}")
+        #print(f"y.shape: {y.shape}, glot.shape: {glot.shape}")
 
         if self.params.use_glot:
-            y = y + glot
+            y = y + self.glot_projection(glot)
 
         if self.params.use_mels:
-            y = y + conditioner
+            y = y + self.conditioner_projection(conditioner)
 
         if conditioner_global is not None:
             y = y + self.conditioner_projection_global(conditioner_global)
