@@ -224,7 +224,7 @@ class Collator:
         return {
             'audio': audio,
             'glot': glot,
-            'spectrogram': spectrogram,
+            'spectrogram': spectrogram if spectrogram is not None else None,
             'target_std': target_std,
             'filename': filename
         }
