@@ -148,7 +148,7 @@ class PriorGradLearner:
                         self._write_summary(self.step, features, loss)
                     if self.step % 10000 == 0:
                         self.run_valid_loop()
-                    if self.step % 50000 == 0:
+                    if self.step % 10000 == 0:
                         print("INFO: saving checkpoint at step {}".format(self.step))
                         self.save_to_checkpoint()
                 self.step += 1
@@ -163,7 +163,7 @@ class PriorGradLearner:
         target_std = features['target_std']
 
         #print(f"train_step => audio.shape: {audio.shape}, glot.shape: {glot.shape}")
-        
+
         if self.condition_prior:
             target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
             
