@@ -13,23 +13,23 @@ from params import params
 from scipy.io.wavfile import read
 
 def main(args):
-    sr = 16000
-
-    results = 0
-    total = 0
+    smels = []
+    omels = []
 
     for fname in os.listdir(args.sdir):
         synthetic_mels = load_mels(os.path.join(args.sdir, fname))
         original_mels = load_mels(os.path.join(args.odir, fname))
-
-        result = melcd(synthetic_mels.numpy(), original_mels.numpy() , lengths=None)
-        print(f"{fname} ==> {result}")
+        smels.append(synthetic_mels.numpy())
+        omels.append(original_mels.numpy())
+        #result = melcd(synthetic_mels.numpy(), original_mels.numpy() , lengths=None)
+        #print(f"{fname} ==> {result}")
 
         #results.append(dict(fname=fname, score=result))
-        results += result
-        total += 1
+        #results += result
+        #total += 1
 
-    print(f"average: {results/total}")
+    result = melcd(np.stack(smels), np.stack(omels))
+    print(f"result: {result}")
 
 def load_mels(audio_file):
     sr, audio = read(audio_file)
