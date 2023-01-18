@@ -110,14 +110,16 @@ class ResidualBlock(nn.Module):
         self.output_projection = Conv1d(residual_channels, 2 * residual_channels, 1)
 
     def forward(self, x, glot, conditioner, diffusion_step, conditioner_global=None):
+        print(f"diffusion_step.shape: {diffusion_step.shape}, conditioner.shape: {conditioner.shape}")
         diffusion_step = self.diffusion_projection(diffusion_step).unsqueeze(-1)
         conditioner = self.conditioner_projection(conditioner)
+        print(f"diffusion_step.shape: {diffusion_step.shape}, conditioner.shape: {conditioner.shape}")
 
         y = x + diffusion_step #if self.params.use_glot else x + diffusion_step
         y = self.dilated_conv(y)
 
         print(f"y.shape: {y.shape}, glot.shape: {glot.shape}")
-        
+
         if self.params.use_glot:
             y = y + glot
 
