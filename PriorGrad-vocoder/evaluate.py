@@ -20,7 +20,7 @@ def main(args):
 
     for fname in os.listdir(args.sdir):
         synthetic_mels = load_mels(os.path.join(args.sdir, fname))
-        original_mels = load_mels(os.path.join(args.odir, fname), normalize=True)
+        original_mels = load_mels(os.path.join(args.odir, fname), should_normalize=True)
 
         result = melcd(synthetic_mels.numpy(), original_mels.numpy() , lengths=None)
         print(f"{fname} ==> {result}")
@@ -31,13 +31,13 @@ def main(args):
 
     print(f"average: {results/total}")
 
-def load_mels(audio_file, normalize=False):
+def load_mels(audio_file, should_normalize=False):
     sr, audio = read(audio_file)
 
     if params.sample_rate != sr:
         raise ValueError(f'Invalid sample rate {sr}.')
 
-    if normalize:
+    if should_normalize:
         audio = audio / MAX_WAV_VALUE
         audio = normalize(audio) * 0.95
 
