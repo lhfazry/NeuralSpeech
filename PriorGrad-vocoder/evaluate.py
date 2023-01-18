@@ -19,8 +19,8 @@ def main(args):
     for fname in os.listdir(args.sdir):
         synthetic_mels = load_mels(os.path.join(args.sdir, fname))
         original_mels = load_mels(os.path.join(args.odir, fname))
-        smels.append(synthetic_mels.numpy())
-        omels.append(original_mels.numpy())
+        smels.append(synthetic_mels)
+        omels.append(original_mels)
         #result = melcd(synthetic_mels.numpy(), original_mels.numpy() , lengths=None)
         #print(f"{fname} ==> {result}")
 
@@ -28,7 +28,7 @@ def main(args):
         #results += result
         #total += 1
 
-    result = melcd(np.stack(smels), np.stack(omels))
+    result = melcd(torch.stack(smels), torch.stack(omels))
     print(f"result: {result}")
 
 def load_mels(audio_file):
