@@ -161,7 +161,7 @@ class NumpyDataset(torch.utils.data.Dataset):
             #target_std = torch.ones_like(spectrogram[:, 0, :])
             target_std = torch.ones(1, self.params.crop_mel_frames)
 
-        print(f"spectrogram.shape: {spectrogram.shape}, target_std: {target_std.shape}")
+        #print(f"spectrogram.shape: {spectrogram.shape}, target_std: {target_std.shape}")
 
         # add glot
         if self.params.use_glot:
