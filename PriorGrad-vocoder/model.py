@@ -113,8 +113,14 @@ class ResidualBlock(nn.Module):
         diffusion_step = self.diffusion_projection(diffusion_step).unsqueeze(-1)
         conditioner = self.conditioner_projection(conditioner)
 
-        y = x + glot + diffusion_step if self.params.use_glot else x + diffusion_step
-        y = self.dilated_conv(y) + conditioner  if self.params.use_mels else self.dilated_conv(y)
+        y = x + diffusion_step #if self.params.use_glot else x + diffusion_step
+        y = self.dilated_conv(y)
+
+        if self.params.use_glot:
+            y = y + glot
+
+        if self.params.use_mels:
+            y = y + conditioner
 
         if conditioner_global is not None:
             y = y + self.conditioner_projection_global(conditioner_global)
