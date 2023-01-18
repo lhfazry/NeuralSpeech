@@ -159,7 +159,7 @@ class NumpyDataset(torch.utils.data.Dataset):
             target_std = torch.clamp((energy - self.energy_min) / (self.energy_max - self.energy_min), self.std_min, None)
         else:
             #target_std = torch.ones_like(spectrogram[:, 0, :])
-            target_std = torch.ones(1, self.params.crop_mel_frames)
+            target_std = torch.ones(1, self.params.hop_samples * 4)
 
         #print(f"spectrogram.shape: {spectrogram.shape}, target_std: {target_std.shape}")
 
@@ -205,7 +205,7 @@ class Collator:
             record['target_std'] = record['target_std']
             record['target_std'] = torch.repeat_interleave(record['target_std'], samples_per_frame)
             record['audio'] = record['audio']
-            record['glot'] = record['glot']
+            #record['glot'] = record['glot']
 
             print(f"audio.shape: {record['audio'].shape}, target_std: {record['target_std'].shape}")
             assert record['audio'].shape == record['target_std'].shape
