@@ -164,18 +164,18 @@ class PriorGradLearner:
 
         #print(f"train_step => audio.shape: {audio.shape}, glot.shape: {glot.shape}")
 
-        if self.params.use_mels:
-            if self.condition_prior:
-                target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
+        
+        if self.condition_prior:
+            target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
+            
+            if self.params.use_mels:
                 spectrogram = torch.cat([spectrogram, target_std_specdim], dim=1)
-                global_cond = None
-            elif self.condition_prior_global:
-                target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
-                global_cond = target_std_specdim
-            else:
-                global_cond = None
-        else: 
-            target_std = 1.0
+            global_cond = None
+        elif self.condition_prior_global:
+            target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
+            global_cond = target_std_specdim
+        else:
+            global_cond = None
 
         N, T = audio.shape
         device = audio.device
@@ -227,19 +227,19 @@ class PriorGradLearner:
                 target_std = features['target_std']
 
                 #print(f"run_valid_loop => audio.shape: {audio.shape}, glot.shape: {glot.shape}")
-                if self.params.use_mels:
-                    if self.condition_prior:
-                        target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
+                
+                if self.condition_prior:
+                    target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
+                    
+                    if self.params.use_mels:
                         spectrogram = torch.cat([spectrogram, target_std_specdim], dim=1)
-                        global_cond = None
-                    elif self.condition_prior_global:
-                        target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
-                        global_cond = target_std_specdim
-                    else:
-                        global_cond = None
+                    global_cond = None
+                elif self.condition_prior_global:
+                    target_std_specdim = target_std[:, ::self.params.hop_samples].unsqueeze(1)
+                    global_cond = target_std_specdim
                 else:
-                    target_std = 1.0
-
+                    global_cond = None
+                
                 N, T = audio.shape
                 device = audio.device
                 self.noise_level = self.noise_level.to(device)

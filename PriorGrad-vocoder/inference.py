@@ -65,7 +65,7 @@ def restore_from_checkpoint(model, model_dir, step, filename='weights'):
         print("Loaded {} from {} step checkpoint".format(f'{model_dir}/{filename}.pt', step))
         return model, step
 
-def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True):
+def predict(model, glot, spectrogram, target_std, global_cond=None, fast_sampling=True):
     with torch.no_grad():
         # Change in notation from the Diffwave paper for fast sampling.
         # DiffWave paper -> Implementation below
@@ -100,14 +100,15 @@ def predict(model, spectrogram, target_std, global_cond=None, fast_sampling=True
             spectrogram = spectrogram.unsqueeze(0)
         spectrogram = spectrogram.to(device)
 
-        audio = torch.randn(spectrogram.shape[0], model.params.hop_samples * spectrogram.shape[-1],
+        N = spectrogram.shape[0] if spectrogram is not None else glot.shape[0]
+        audio = torch.randn(N, model.params.hop_samples * spectrogram.shape[-1],
                             device=device) * target_std
         noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
 
         for n in range(len(alpha) - 1, -1, -1):
             c1 = 1 / alpha[n] ** 0.5
             c2 = beta[n] / (1 - alpha_cum[n]) ** 0.5
-            audio = c1 * (audio - c2 * model(audio, spectrogram, torch.tensor([T[n]], device=audio.device),
+            audio = c1 * (audio - c2 * model(audio, glot, spectrogram, torch.tensor([T[n]], device=audio.device),
                                              global_cond).squeeze(1))
             if n > 0:
                 noise = torch.randn_like(audio) * target_std
@@ -167,12 +168,15 @@ def main(args):
         features = _nested_map(features, lambda x: x.to(device) if isinstance(x, torch.Tensor) else x)
         with torch.no_grad():
             audio_gt = features['audio']
+            glot = features['glot']
             spectrogram = features['spectrogram']
             target_std = features['target_std']
 
             if params.condition_prior:
                 target_std_specdim = target_std[:, ::params.hop_samples].unsqueeze(1)
-                spectrogram = torch.cat([spectrogram, target_std_specdim], dim=1)
+
+                if params.use_mels:
+                    spectrogram = torch.cat([spectrogram, target_std_specdim], dim=1)
                 global_cond = None
             elif params.condition_prior_global:
                 target_std_specdim = target_std[:, ::params.hop_samples].unsqueeze(1)
@@ -180,8 +184,9 @@ def main(args):
             else:
                 global_cond = None
 
-        audio = predict(model, spectrogram, target_std, global_cond=global_cond, fast_sampling=args.fast)
-        sample_name = "{:04d}.wav".format(i + 1)
+        audio = predict(model, glot, spectrogram, target_std, global_cond=global_cond, fast_sampling=args.fast)
+        #sample_name = "{:04d}.wav".format(i + 1)
+        sample_name = Path(features['filename'][0]).name
         torchaudio.save(os.path.join(sample_path, sample_name), audio.cpu(), sample_rate=model.params.sample_rate)
 
 if __name__ == '__main__':

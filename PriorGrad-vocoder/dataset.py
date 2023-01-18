@@ -158,8 +158,7 @@ class NumpyDataset(torch.utils.data.Dataset):
             # normalize to 0~1
             target_std = torch.clamp((energy - self.energy_min) / (self.energy_max - self.energy_min), self.std_min, None)
         else:
-            if spectrogram is not None:
-                target_std = torch.ones_like(spectrogram[:, 0, :])
+            target_std = torch.ones_like(spectrogram[:, 0, :])
 
         # add glot
         if self.params.use_glot:
@@ -177,7 +176,7 @@ class NumpyDataset(torch.utils.data.Dataset):
             'audio': audio, # [T_time]
             'glot': glot,
             'spectrogram': spectrogram[0].T if spectrogram is not None else None, # [T_mel, 80]
-            'target_std': target_std[0] is target_std if not None else None, # [T_mel],
+            'target_std': target_std[0], # [T_mel],
             'filename': audio_filename
         }
 
@@ -203,7 +202,6 @@ class Collator:
 
             record['target_std'] = torch.repeat_interleave(record['target_std'], samples_per_frame)
             record['audio'] = record['audio']
-            #record['glot'] = record['glot']
 
             assert record['audio'].shape == record['target_std'].shape
 
@@ -212,7 +210,8 @@ class Collator:
 
         if self.params.use_mels:
             spectrogram = torch.stack([record['spectrogram'] for record in minibatch if 'spectrogram' in record])
-            target_std = torch.stack([record['target_std'] for record in minibatch if 'target_std' in record])
+        
+        target_std = torch.stack([record['target_std'] for record in minibatch if 'target_std' in record])
 
         glot = None
         if self.params.use_glot:
