@@ -314,10 +314,10 @@ class PriorGradLearner:
                     spectrogram = spectrogram.unsqueeze(0)
                 spectrogram = spectrogram.to(device)
             
-            N = spectrogram.shape[0] if spectrogram is not None else glot.shape[0]
+            #N = spectrogram.shape[0] if spectrogram is not None else glot.shape[0]
             #audio = torch.randn(N, self.params.hop_samples * spectrogram.shape[-1],
             #                    device=device) * target_std
-            audio = torch.rand_like(ori_audio) * target_std
+            audio = torch.randn_like(ori_audio) * target_std
             noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
 
             for n in range(len(alpha) - 1, -1, -1):
