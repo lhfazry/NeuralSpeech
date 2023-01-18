@@ -65,7 +65,7 @@ def restore_from_checkpoint(model, model_dir, step, filename='weights'):
         print("Loaded {} from {} step checkpoint".format(f'{model_dir}/{filename}.pt', step))
         return model, step
 
-def predict(model, glot, spectrogram, target_std, global_cond=None, fast_sampling=True):
+def predict(model, audio_gt, glot, spectrogram, target_std, global_cond=None, fast_sampling=True):
     with torch.no_grad():
         # Change in notation from the Diffwave paper for fast sampling.
         # DiffWave paper -> Implementation below
@@ -101,21 +101,39 @@ def predict(model, glot, spectrogram, target_std, global_cond=None, fast_samplin
                 spectrogram = spectrogram.unsqueeze(0)
             spectrogram = spectrogram.to(device)
 
-        N = spectrogram.shape[0] if spectrogram is not None else glot.shape[0]
-        audio = torch.randn(N, model.params.hop_samples * spectrogram.shape[-1],
-                            device=device) * target_std
+        #N = spectrogram.shape[0] if spectrogram is not None else glot.shape[0]
+        audio = torch.randn_like(audio_gt) * target_std
+        #audio = torch.randn(N, model.params.hop_samples * spectrogram.shape[-1],
+        #                    device=device) * target_std
         noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
 
+        audios = []
         for n in range(len(alpha) - 1, -1, -1):
             c1 = 1 / alpha[n] ** 0.5
             c2 = beta[n] / (1 - alpha_cum[n]) ** 0.5
-            audio = c1 * (audio - c2 * model(audio, glot, spectrogram, torch.tensor([T[n]], device=audio.device),
+            audio = c1 * (audio - c2 * model(audio, glot, 
+                spectrogram if model.params.use_mels else None, 
+                torch.tensor([T[n]], device=audio.device),
                                              global_cond).squeeze(1))
             if n > 0:
                 noise = torch.randn_like(audio) * target_std
                 sigma = ((1.0 - alpha_cum[n - 1]) / (1.0 - alpha_cum[n]) * beta[n]) ** 0.5
                 audio += sigma * noise
+
             audio = torch.clamp(audio, -1.0, 1.0)
+            audios.append(audio)
+
+            if model.params.acc_pred:
+                if len(audios) - model.params.acc_pred_step < 0:    
+                    indexes = [len(audios) - i - 1 for i in range(model.params.acc_pred_step - len(audios))]
+                else:
+                    indexes = [len(audios) - i - 1 for i in range(model.params.acc_pred_step)]
+                
+                print(indexes)
+                acc = torch.mean(torch.stack([audios[i] for i in indexes]), dim=0)    
+                audios[len(audios) - 1] = acc
+
+        del audios
 
         return audio
 
@@ -185,7 +203,7 @@ def main(args):
             else:
                 global_cond = None
 
-        audio = predict(model, glot, spectrogram, target_std, global_cond=global_cond, fast_sampling=args.fast)
+        audio = predict(model, audio_gt, glot, spectrogram, target_std, global_cond=global_cond, fast_sampling=args.fast)
         #sample_name = "{:04d}.wav".format(i + 1)
         sample_name = Path(features['filename'][0]).name
         torchaudio.save(os.path.join(sample_path, sample_name), audio.cpu(), sample_rate=model.params.sample_rate)

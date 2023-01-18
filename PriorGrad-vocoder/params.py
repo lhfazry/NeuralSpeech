@@ -91,4 +91,8 @@ params = AttrDict(
 
     use_glot=True,
     use_mels=False,
+
+    # accumulative prediction
+    acc_pred=True,
+    acc_pred_step=2,
 )
