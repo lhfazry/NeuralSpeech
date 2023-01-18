@@ -145,21 +145,19 @@ class NumpyDataset(torch.utils.data.Dataset):
             end = start + (self.params.crop_mel_frames * self.params.hop_samples)
             audio = audio[start:end]
 
-        spectrogram = None
-        if self.params.use_mels:
-            spectrogram = get_mel(audio, self.params)
+        
+        spectrogram = get_mel(audio, self.params)
         
         if self.use_prior:
-            if spectrogram is not None:
-                energy = (spectrogram.exp()).sum(1).sqrt()
+            energy = (spectrogram.exp()).sum(1).sqrt()
 
             if self.max_energy_override is not None:
                 energy = torch.clamp(energy, None, self.max_energy_override)
             # normalize to 0~1
             target_std = torch.clamp((energy - self.energy_min) / (self.energy_max - self.energy_min), self.std_min, None)
         else:
-            #target_std = torch.ones_like(spectrogram[:, 0, :])
-            target_std = torch.ones(1, audio.shape[0] // self.params.hop_samples)
+            target_std = torch.ones_like(spectrogram[:, 0, :])
+            #target_std = torch.ones(1, audio.shape[0] // self.params.hop_samples)
 
         #print(f"spectrogram.shape: {spectrogram.shape}, target_std: {target_std.shape}")
 
@@ -178,7 +176,7 @@ class NumpyDataset(torch.utils.data.Dataset):
         return {
             'audio': audio, # [T_time]
             'glot': glot,
-            'spectrogram': spectrogram[0].T if spectrogram is not None else None, # [T_mel, 80]
+            'spectrogram': spectrogram[0].T, # [T_mel, 80]
             'target_std': target_std[0], # [T_mel],
             'filename': audio_filename
         }
@@ -213,9 +211,9 @@ class Collator:
         audio = torch.stack([record['audio'] for record in minibatch if 'audio' in record])
         filename = [record['filename'] for record in minibatch if 'filename' in record]
 
-        spectrogram = None
-        if self.params.use_mels:
-            spectrogram = torch.stack([record['spectrogram'] for record in minibatch if 'spectrogram' in record])
+        #spectrogram = None
+        #if self.params.use_mels:
+        spectrogram = torch.stack([record['spectrogram'] for record in minibatch if 'spectrogram' in record])
         
         target_std = torch.stack([record['target_std'] for record in minibatch if 'target_std' in record])
 

@@ -188,7 +188,8 @@ class PriorGradLearner:
             noise = noise * target_std
             noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
 
-            predicted = self.model(noisy_audio, glot, spectrogram, t, global_cond)
+            predicted = self.model(noisy_audio, glot, 
+                spectrogram if self.params.use_mels else None, t, global_cond)
 
             if self.use_prior:
                 if self.use_l2loss:
@@ -251,9 +252,11 @@ class PriorGradLearner:
                 noisy_audio = noise_scale_sqrt * audio + (1.0 - noise_scale) ** 0.5 * noise
 
                 if hasattr(self.model, 'module'):
-                    predicted = self.model.module(noisy_audio, glot, spectrogram, t, global_cond)
+                    predicted = self.model.module(noisy_audio, glot, 
+                        spectrogram if self.params.use_mels else None, t, global_cond)
                 else:
-                    predicted = self.model(noisy_audio, glot, spectrogram, t, global_cond)
+                    predicted = self.model(noisy_audio, glot, 
+                        spectrogram if self.params.use_mels else None, t, global_cond)
 
                 if self.use_prior:
                     if self.use_l2loss:
@@ -268,7 +271,8 @@ class PriorGradLearner:
 
                 losses.append(loss.cpu().numpy())
 
-                audio_pred = self.predict(audio, glot, spectrogram, target_std, global_cond)
+                audio_pred = self.predict(audio, glot, 
+                    spectrogram if self.params.use_mels else None, target_std, global_cond)
                 audio_preds.append(audio_pred.cpu().numpy())
 
                 loss_l1 = torch.nn.L1Loss()(get_mel(audio_pred.squeeze(0), self.params), spectrogram).item()
