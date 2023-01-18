@@ -160,7 +160,7 @@ class NumpyDataset(torch.utils.data.Dataset):
         else:
             #target_std = torch.ones_like(spectrogram[:, 0, :])
             #target_std = torch.ones(1, self.params.crop_mel_frames)
-            target_std = torch.ones_like(audio)
+            target_std = torch.ones_like(audio).unsqueeze(0)
 
         #print(f"spectrogram.shape: {spectrogram.shape}, target_std: {target_std.shape}")
 
