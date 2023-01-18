@@ -158,9 +158,10 @@ class NumpyDataset(torch.utils.data.Dataset):
             # normalize to 0~1
             target_std = torch.clamp((energy - self.energy_min) / (self.energy_max - self.energy_min), self.std_min, None)
         else:
-            target_std = torch.ones_like(spectrogram[:, 0, :])
+            #target_std = torch.ones_like(spectrogram[:, 0, :])
+            target_std = torch.ones(1, self.crop_mel_frames)
 
-        print(f"spectrogram.shape: {spectrogram.shape}, target_std: {target_std.shape}")
+        #print(f"spectrogram.shape: {spectrogram.shape}, target_std: {target_std.shape}")
 
         # add glot
         if self.params.use_glot:
