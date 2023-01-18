@@ -268,7 +268,7 @@ class PriorGradLearner:
 
                 losses.append(loss.cpu().numpy())
 
-                audio_pred = self.predict(glot, spectrogram, target_std, global_cond)
+                audio_pred = self.predict(audio, glot, spectrogram, target_std, global_cond)
                 audio_preds.append(audio_pred.cpu().numpy())
 
                 loss_l1 = torch.nn.L1Loss()(get_mel(audio_pred.squeeze(0), self.params), spectrogram).item()
@@ -278,7 +278,7 @@ class PriorGradLearner:
             loss_l1 = np.mean(losses_l1)
             self._write_summary_valid(self.step, loss_valid, loss_l1, audio_preds)
 
-    def predict(self, glot, spectrogram, target_std, global_cond=None):
+    def predict(self, ori_audio, glot, spectrogram, target_std, global_cond=None):
         with torch.no_grad():
             device = next(self.model.parameters()).device
             # Change in notation from the PriorGrad paper for fast sampling.
@@ -315,8 +315,9 @@ class PriorGradLearner:
                 spectrogram = spectrogram.to(device)
             
             N = spectrogram.shape[0] if spectrogram is not None else glot.shape[0]
-            audio = torch.randn(N, self.params.hop_samples * spectrogram.shape[-1],
-                                device=device) * target_std
+            #audio = torch.randn(N, self.params.hop_samples * spectrogram.shape[-1],
+            #                    device=device) * target_std
+            audio = torch.rand_like(ori_audio) * target_std
             noise_scale = torch.from_numpy(alpha_cum ** 0.5).float().unsqueeze(1).to(device)
 
             for n in range(len(alpha) - 1, -1, -1):
