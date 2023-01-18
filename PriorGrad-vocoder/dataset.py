@@ -149,10 +149,10 @@ class NumpyDataset(torch.utils.data.Dataset):
         if self.params.use_mels:
             spectrogram = get_mel(audio, self.params)
         
-        if spectrogram is not None:
-            energy = (spectrogram.exp()).sum(1).sqrt()
-
         if self.use_prior:
+            if spectrogram is not None:
+                energy = (spectrogram.exp()).sum(1).sqrt()
+
             if self.max_energy_override is not None:
                 energy = torch.clamp(energy, None, self.max_energy_override)
             # normalize to 0~1
@@ -198,10 +198,11 @@ class Collator:
                     continue
 
                 record['spectrogram'] = record['spectrogram'].T
-                record['target_std'] = record['target_std']
-
+            
+            record['target_std'] = record['target_std']
             record['target_std'] = torch.repeat_interleave(record['target_std'], samples_per_frame)
             record['audio'] = record['audio']
+            record['glot'] = record['glot']
 
             assert record['audio'].shape == record['target_std'].shape
 

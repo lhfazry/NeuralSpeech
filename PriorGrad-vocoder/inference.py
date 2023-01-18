@@ -96,9 +96,10 @@ def predict(model, glot, spectrogram, target_std, global_cond=None, fast_samplin
         T = np.array(T, dtype=np.float32)
 
         # Expand rank 2 tensors by adding a batch dimension.
-        if len(spectrogram.shape) == 2:
-            spectrogram = spectrogram.unsqueeze(0)
-        spectrogram = spectrogram.to(device)
+        if model.params.use_mels:
+            if len(spectrogram.shape) == 2:
+                spectrogram = spectrogram.unsqueeze(0)
+            spectrogram = spectrogram.to(device)
 
         N = spectrogram.shape[0] if spectrogram is not None else glot.shape[0]
         audio = torch.randn(N, model.params.hop_samples * spectrogram.shape[-1],
