@@ -208,6 +208,7 @@ class Collator:
             record['audio'] = record['audio']
             record['glot'] = record['glot']
 
+            print(f"audio.shape: {record['audio'].shape}, target_std: {record['target_std'].shape}")
             assert record['audio'].shape == record['target_std'].shape
 
         audio = torch.stack([record['audio'] for record in minibatch if 'audio' in record])
