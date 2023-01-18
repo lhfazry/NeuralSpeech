@@ -93,6 +93,6 @@ params = AttrDict(
     use_mels=False,
 
     # accumulative prediction
-    acc_pred=True,
+    acc_pred=False,
     acc_pred_step=2,
 )
