@@ -38,7 +38,8 @@ def main2(args):
     for fname in os.listdir(args.sdir):
         swav, _ = librosa.load(os.path.join(args.sdir, fname), sr=sr, mono=True)
         owav, _ = librosa.load(os.path.join(args.odir, fname), sr=sr, mono=True)
-
+        owav = owav[:swav.shape[0]]
+        
         swav = swav.astype(np.float64)
         owav = owav.astype(np.float64)
 
