@@ -11,6 +11,7 @@ from argparse import ArgumentParser
 from preprocess import MAX_WAV_VALUE, get_mel, normalize
 from params import params
 from scipy.io.wavfile import read
+import pyworld
 
 def main(args):
     results = 0
@@ -24,6 +25,35 @@ def main(args):
         print(f"{fname} ==> {result}")
 
         #results.append(dict(fname=fname, score=result))
+        results += result
+        total += 1
+
+    print(f"average: {results/total}")
+
+def main2(args):
+    results = 0
+    total = 0
+    sr = 22050
+
+    for fname in os.listdir(args.sdir):
+        swav, _ = librosa.load(os.path.join(args.sdir, fname), sr=sr, mono=True)
+        owav, _ = librosa.load(os.path.join(args.odir, fname), sr=sr, mono=True)
+
+        swav = swav.astype(np.float64)
+        owav = owav.astype(np.float64)
+
+        f0_1, timeaxis_1 = pyworld.harvest(swav, sr, frame_period=5.0, f0_floor=71.0, f0_ceil=800.0)
+        sp1 = pyworld.cheaptrick(swav, f0_1, timeaxis_1, sr)  
+
+        f0_2, timeaxis_2 = pyworld.harvest(owav, sr, frame_period=5.0, f0_floor=71.0, f0_ceil=800.0)
+        sp2 = pyworld.cheaptrick(owav, f0_2, timeaxis_2, sr)  
+
+        # mel-cepstrum
+        coded_sp_1 = pyworld.code_spectral_envelope(sp1, sr, 24)
+        coded_sp_2 = pyworld.code_spectral_envelope(sp2, sr, 24)
+
+        result = melcd(coded_sp_1, coded_sp_2 , lengths=None)
+
         results += result
         total += 1
 
@@ -52,4 +82,4 @@ if __name__ == '__main__':
     parser.add_argument('--sdir', help='Synthetic directory of waveform')
     parser.add_argument('--odir', help='Original directory of waveform')
     
-    main(parser.parse_args())
+    main2(parser.parse_args())
