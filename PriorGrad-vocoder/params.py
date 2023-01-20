@@ -89,7 +89,7 @@ params = AttrDict(
     noise_dist=1, #1=gaussian, 2=gamma
     gamma_init_scale=0.001,
 
-    use_glot=True,
+    use_glot=False,
     use_mels=True,
 
     # accumulative prediction
