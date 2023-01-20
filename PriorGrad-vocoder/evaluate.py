@@ -39,7 +39,7 @@ def main2(args):
         swav, _ = librosa.load(os.path.join(args.sdir, fname), sr=sr, mono=True)
         owav, _ = librosa.load(os.path.join(args.odir, fname), sr=sr, mono=True)
         owav = owav[:swav.shape[0]]
-        
+
         swav = swav.astype(np.float64)
         owav = owav.astype(np.float64)
 
@@ -54,6 +54,7 @@ def main2(args):
         coded_sp_2 = pyworld.code_spectral_envelope(sp2, sr, 24)
 
         result = melcd(coded_sp_1, coded_sp_2 , lengths=None)
+        print(f"{fname}: {result}")
 
         results += result
         total += 1
