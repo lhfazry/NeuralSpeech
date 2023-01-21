@@ -43,10 +43,10 @@ def main2(args):
         swav = swav.astype(np.float64)
         owav = owav.astype(np.float64)
 
-        f0_1, timeaxis_1 = pyworld.harvest(swav, sr, frame_period=5.0, f0_floor=71.0, f0_ceil=800.0)
+        f0_1, timeaxis_1 = pyworld.harvest(swav, sr, frame_period=5.0, f0_floor=0.0, f0_ceil=8000.0)
         sp1 = pyworld.cheaptrick(swav, f0_1, timeaxis_1, sr)  
 
-        f0_2, timeaxis_2 = pyworld.harvest(owav, sr, frame_period=5.0, f0_floor=71.0, f0_ceil=800.0)
+        f0_2, timeaxis_2 = pyworld.harvest(owav, sr, frame_period=5.0, f0_floor=0.0, f0_ceil=8000.0)
         sp2 = pyworld.cheaptrick(owav, f0_2, timeaxis_2, sr)  
 
         # mel-cepstrum
