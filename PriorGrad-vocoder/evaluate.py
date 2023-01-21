@@ -50,8 +50,8 @@ def main2(args):
         sp2 = pyworld.cheaptrick(owav, f0_2, timeaxis_2, sr, fft_size=1024)  
 
         # mel-cepstrum
-        coded_sp_1 = pyworld.code_spectral_envelope(sp1, sr, 80)
-        coded_sp_2 = pyworld.code_spectral_envelope(sp2, sr, 80)
+        coded_sp_1 = pyworld.code_spectral_envelope(sp1, sr, 24)
+        coded_sp_2 = pyworld.code_spectral_envelope(sp2, sr, 24)
 
         result = melcd(coded_sp_1, coded_sp_2 , lengths=None)
         print(f"{fname}: {result}")
