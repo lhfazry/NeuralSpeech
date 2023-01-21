@@ -95,4 +95,6 @@ params = AttrDict(
     # accumulative prediction
     acc_pred=False,
     acc_pred_step=2,
+
+    reduced_audio=True,
 )
