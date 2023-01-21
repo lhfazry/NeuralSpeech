@@ -43,15 +43,15 @@ def main2(args):
         swav = swav.astype(np.float64)
         owav = owav.astype(np.float64)
 
-        f0_1, timeaxis_1 = pyworld.harvest(swav, sr, frame_period=5.0, f0_floor=0.0, f0_ceil=8000.0)
-        sp1 = pyworld.cheaptrick(swav, f0_1, timeaxis_1, sr)  
+        f0_1, timeaxis_1 = pyworld.harvest(swav, sr, frame_period=5.0, f0_floor=71.0, f0_ceil=800.0)
+        sp1 = pyworld.cheaptrick(swav, f0_1, timeaxis_1, sr, fft_size=1024)  
 
-        f0_2, timeaxis_2 = pyworld.harvest(owav, sr, frame_period=5.0, f0_floor=0.0, f0_ceil=8000.0)
-        sp2 = pyworld.cheaptrick(owav, f0_2, timeaxis_2, sr)  
+        f0_2, timeaxis_2 = pyworld.harvest(owav, sr, frame_period=5.0, f0_floor=71.0, f0_ceil=800.0)
+        sp2 = pyworld.cheaptrick(owav, f0_2, timeaxis_2, sr, fft_size=1024)  
 
         # mel-cepstrum
-        coded_sp_1 = pyworld.code_spectral_envelope(sp1, sr, 24)
-        coded_sp_2 = pyworld.code_spectral_envelope(sp2, sr, 24)
+        coded_sp_1 = pyworld.code_spectral_envelope(sp1, sr, 80)
+        coded_sp_2 = pyworld.code_spectral_envelope(sp2, sr, 80)
 
         result = melcd(coded_sp_1, coded_sp_2 , lengths=None)
         print(f"{fname}: {result}")
