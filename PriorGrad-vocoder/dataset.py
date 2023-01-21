@@ -146,7 +146,7 @@ class NumpyDataset(torch.utils.data.Dataset):
             audio = audio[start:end]
 
         if self.params.reduced_audio:
-            audio = audio + (1e-6) ** 0.5 * torch.randn_like(audio)
+            audio = audio + (1e-5) ** 0.5 * torch.randn_like(audio)
 
         spectrogram = get_mel(audio, self.params)
         
