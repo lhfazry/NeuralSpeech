@@ -124,9 +124,8 @@ class NumpyDataset(torch.utils.data.Dataset):
         audio = normalize(audio) * 0.95
 
         # match audio length to self.hop_size * n for evaluation
-        if self.params.inf_pretrained_mels not in [1,2]:
-            if (audio.shape[0] % self.params.hop_samples) != 0:
-                audio = audio[:-(audio.shape[0] % self.params.hop_samples)]
+        if (audio.shape[0] % self.params.hop_samples) != 0:
+            audio = audio[:-(audio.shape[0] % self.params.hop_samples)]
         
         audio = torch.FloatTensor(audio)
         #print(f"audio.shape: {audio.shape}")
@@ -168,7 +167,12 @@ class NumpyDataset(torch.utils.data.Dataset):
                 mels_path = os.path.join(pfilename.parents[1], 'mels', pfilename.stem + '.npy')
                 spectrogram = torch.tensor(np.load(mels_path), dtype=torch.float32)
                 spectrogram = spectral_normalize_torch(spectrogram).unsqueeze(0)
-                audio = audio[0:(spectrogram.shape[2] * self.params.hop_samples)]
+
+                if audio.shape[0] >= spectrogram.shape[2] * self.params.hop_samples:
+                    audio = audio[0:(spectrogram.shape[2] * self.params.hop_samples)]
+                else:
+                    spectrogram = spectrogram[:,:,audio.shape[0] // self.params.hop_samples]
+
             elif self.params.inf_pretrained_mels == 2: # fast speech
                 spectrogram = get_mel(audio, self.params)
 
