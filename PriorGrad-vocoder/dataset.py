@@ -163,12 +163,10 @@ class NumpyDataset(torch.utils.data.Dataset):
             elif self.params.inf_pretrained_mels == 1: # tacotron 2
                 mels_path = os.path.join(pfilename.parents[1], 'mels', pfilename.stem + '.npy')
                 spectrogram = torch.tensor(np.load(mels_path), dtype=torch.float32)
-                spectrogram = spectral_normalize_torch(spectrogram)
+                spectrogram = spectral_normalize_torch(spectrogram).unsqueeze(0)
             elif self.params.inf_pretrained_mels == 2: # fast speech
                 spectrogram = get_mel(audio, self.params)
-        
-        print(f"spectrogram: {spectrogram.shape}")
-        
+
         if self.use_prior:
             energy = (spectrogram.exp()).sum(1).sqrt()
 
