@@ -153,7 +153,10 @@ class NumpyDataset(torch.utils.data.Dataset):
             elif self.params.pretrained_mels == 1: # tacotron 2
                 mels_path = os.path.join(pfilename.parents[1], 'mels', pfilename.stem + '.npy')
                 spectrogram = torch.tensor(np.load(mels_path), dtype=torch.float32)
-                spectrogram = spectral_normalize_torch(spectrogram)
+                spectrogram = spectral_normalize_torch(spectrogram).unsqueeze(0)
+                starts = random.randint(0, spectrogram.shape[2] - self.params.crop_mel_frames)
+                ends = starts + self.params.crop_mel_frames * self.params.hop_samples
+                spectrogram = spectrogram[:,:,starts + ends]
             elif self.params.pretrained_mels == 2: # fast speech
                 spectrogram = get_mel(audio, self.params)
         else:
@@ -228,7 +231,7 @@ class Collator:
             record['audio'] = record['audio']
             #record['glot'] = record['glot']
 
-            #print(f"audio.shape: {record['audio'].shape}, target_std: {record['target_std'].shape}")
+            print(f"audio.shape: {record['audio'].shape}, target_std: {record['target_std'].shape}")
             assert record['audio'].shape == record['target_std'].shape
 
         audio = torch.stack([record['audio'] for record in minibatch if 'audio' in record])
