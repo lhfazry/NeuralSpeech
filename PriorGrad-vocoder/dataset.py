@@ -171,7 +171,7 @@ class NumpyDataset(torch.utils.data.Dataset):
                 if audio.shape[0] >= spectrogram.shape[2] * self.params.hop_samples:
                     audio = audio[0:(spectrogram.shape[2] * self.params.hop_samples)]
                 else:
-                    spectrogram = spectrogram[:,:,audio.shape[0] // self.params.hop_samples]
+                    spectrogram = spectrogram[:,:,:audio.shape[0] // self.params.hop_samples]
 
             elif self.params.inf_pretrained_mels == 2: # fast speech
                 spectrogram = get_mel(audio, self.params)
@@ -237,7 +237,7 @@ class Collator:
             record['audio'] = record['audio']
             #record['glot'] = record['glot']
 
-            print(f"audio.shape: {record['audio'].shape}, target_std: {record['target_std'].shape}")
+            #print(f"audio.shape: {record['audio'].shape}, target_std: {record['target_std'].shape}")
             assert record['audio'].shape == record['target_std'].shape
 
         audio = torch.stack([record['audio'] for record in minibatch if 'audio' in record])
