@@ -148,7 +148,6 @@ class NumpyDataset(torch.utils.data.Dataset):
             if self.params.degraded_mels:
                 audio = audio + (self.params.degraded_scale) ** 0.5 * torch.randn_like(audio)
 
-        if self.is_training:
             if self.params.pretrained_mels == 0:
                 spectrogram = get_mel(audio, self.params)
             elif self.params.pretrained_mels == 1: # tacotron 2
@@ -226,8 +225,9 @@ class Collator:
             record['audio'] = record['audio']
             #record['glot'] = record['glot']
 
-            print(f"audio.shape: {record['audio'].shape}, target_std: {record['target_std'].shape}")
-            assert record['audio'].shape == record['target_std'].shape
+            #print(f"audio.shape: {record['audio'].shape}, target_std: {record['target_std'].shape}")
+            if self.is_training:
+                assert record['audio'].shape == record['target_std'].shape
 
         audio = torch.stack([record['audio'] for record in minibatch if 'audio' in record])
         filename = [record['filename'] for record in minibatch if 'filename' in record]
