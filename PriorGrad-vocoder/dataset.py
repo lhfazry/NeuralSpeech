@@ -37,7 +37,7 @@ from tqdm import tqdm
 from torch.utils.data.distributed import DistributedSampler
 from pathlib import Path
 from scipy.io.wavfile import read
-from preprocess import MAX_WAV_VALUE, get_mel, normalize
+from preprocess import MAX_WAV_VALUE, get_mel, normalize, spectral_normalize_torch
 
 device = torch.device("cuda")
 
@@ -145,10 +145,17 @@ class NumpyDataset(torch.utils.data.Dataset):
             end = start + (self.params.crop_mel_frames * self.params.hop_samples)
             audio = audio[start:end]
 
-        if self.params.reduced_audio:
-            audio = audio + (1e-5) ** 0.5 * torch.randn_like(audio)
+        if self.params.degraded_mels:
+            audio = audio + (self.params.degraded_scale) ** 0.5 * torch.randn_like(audio)
 
-        spectrogram = get_mel(audio, self.params)
+        if self.params.pretrained_mels == 0:
+            spectrogram = get_mel(audio, self.params)
+        elif self.params.pretrained_mels == 1: # tacotron 2
+            mels_path = os.path.join(pfilename.parents[1], 'mels', pfilename.stem + '.npy')
+            spectrogram = np.load(mels_path)
+            spectrogram = spectral_normalize_torch(spectrogram)
+        elif self.params.pretrained_mels == 2: # fast speech
+            spectrogram = get_mel(audio, self.params)
         
         if self.use_prior:
             energy = (spectrogram.exp()).sum(1).sqrt()

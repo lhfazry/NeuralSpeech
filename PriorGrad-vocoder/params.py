@@ -96,5 +96,9 @@ params = AttrDict(
     acc_pred=False,
     acc_pred_step=2,
 
-    reduced_audio=True,
+    degraded_mels=True,
+    degraded_scale=1e-5,
+
+    pretrained_mels=0, #0 no pretrained mel, 1 tacotron2, 2 fast speech 2
+
 )
