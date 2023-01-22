@@ -124,8 +124,9 @@ class NumpyDataset(torch.utils.data.Dataset):
         audio = normalize(audio) * 0.95
 
         # match audio length to self.hop_size * n for evaluation
-        if (audio.shape[0] % self.params.hop_samples) != 0:
-            audio = audio[:-(audio.shape[0] % self.params.hop_samples)]
+        if self.params.inf_pretrained_mels not in [1, 2]:
+            if (audio.shape[0] % self.params.hop_samples) != 0:
+                audio = audio[:-(audio.shape[0] % self.params.hop_samples)]
         
         audio = torch.FloatTensor(audio)
         #print(f"audio.shape: {audio.shape}")
