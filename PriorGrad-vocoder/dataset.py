@@ -145,15 +145,15 @@ class NumpyDataset(torch.utils.data.Dataset):
             end = start + (self.params.crop_mel_frames * self.params.hop_samples)
             audio = audio[start:end]
 
-        if self.is_training and self.params.degraded_mels:
-            audio = audio + (self.params.degraded_scale) ** 0.5 * torch.randn_like(audio)
+            if self.params.degraded_mels:
+                audio = audio + (self.params.degraded_scale) ** 0.5 * torch.randn_like(audio)
 
         if self.is_training:
             if self.params.pretrained_mels == 0:
                 spectrogram = get_mel(audio, self.params)
             elif self.params.pretrained_mels == 1: # tacotron 2
                 mels_path = os.path.join(pfilename.parents[1], 'mels', pfilename.stem + '.npy')
-                spectrogram = np.load(mels_path)
+                spectrogram = torch.tensor(np.load(mels_path), dtype=torch.float32)
                 spectrogram = spectral_normalize_torch(spectrogram)
             elif self.params.pretrained_mels == 2: # fast speech
                 spectrogram = get_mel(audio, self.params)
@@ -162,7 +162,7 @@ class NumpyDataset(torch.utils.data.Dataset):
                 spectrogram = get_mel(audio, self.params)
             elif self.params.inf_pretrained_mels == 1: # tacotron 2
                 mels_path = os.path.join(pfilename.parents[1], 'mels', pfilename.stem + '.npy')
-                spectrogram = np.load(mels_path)
+                spectrogram = torch.tensor(np.load(mels_path), dtype=torch.float32)
                 spectrogram = spectral_normalize_torch(spectrogram)
             elif self.params.inf_pretrained_mels == 2: # fast speech
                 spectrogram = get_mel(audio, self.params)
