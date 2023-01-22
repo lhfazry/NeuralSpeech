@@ -163,7 +163,7 @@ class NumpyDataset(torch.utils.data.Dataset):
                 mels_path = os.path.join(pfilename.parents[1], 'mels', pfilename.stem + '.npy')
                 spectrogram = torch.tensor(np.load(mels_path), dtype=torch.float32)
                 spectrogram = spectral_normalize_torch(spectrogram).unsqueeze(0)
-                audio = audio[0:(self.params.crop_mel_frames * self.params.hop_samples)]
+                audio = audio[0:(spectrogram.shape[2] * self.params.hop_samples)]
             elif self.params.inf_pretrained_mels == 2: # fast speech
                 spectrogram = get_mel(audio, self.params)
 
