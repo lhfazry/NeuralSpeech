@@ -95,3 +95,50 @@ python inference.py checkpoints/diffwave_pink_datadependent_gamma /home/s2212015
 versi singularity:
 FAST:
 python inference.py checkpoints/diffglot /home/s2212015/LJSpeech-1.1 filelists/test.txt --step 200000 --fast_iter 50 >> logs/inference/diffglot.log 2>&1
+
+
+----
+Diffwave Reduced Audio
+CUDA_VISIBLE_DEVICES=2 python __main__.py \
+   checkpoints/diffwave_reduced_mels \
+   /workspace/LJSpeech-1.1 \
+   filelists/train.txt >> logs/diffwave_reduced_mels.log 2>&1 &
+
+CUDA_VISIBLE_DEVICES=3 python inference.py \
+   checkpoints/diffwave_reduced_mels \
+   /workspace/LJSpeech-1.1 \
+   filelists/test.txt \
+   --step 50000  --fast_iter 50 >> logs/inferences/diffwave_reduced_mels.log 2>&1 &
+
+python evaluate.py --sdir=checkpoints/sample_slow/diffwave_reduced_mels_step50000 --odir=/workspace/LJSpeech-1.1/wavs
+
+--------
+Diffwave 
+CUDA_VISIBLE_DEVICES=2 python __main__.py \
+   checkpoints/diffwave_reduced_mels \
+   /workspace/LJSpeech-1.1 \
+   filelists/train.txt >> logs/diffwave_reduced_mels.log 2>&1 &
+
+CUDA_VISIBLE_DEVICES=3 python inference.py \
+   checkpoints/diffwave_white_normal_gaussian \
+   /workspace/LJSpeech-1.1 \
+   filelists/test.txt \
+   --step 50000  --fast_iter 50 >> logs/inferences/diffwave_white_normal_gaussian.log 2>&1 &
+
+python evaluate.py --sdir=checkpoints/sample_slow/diffwave_white_normal_gaussian_step50000 --odir=/workspace/LJSpeech-1.1/wavs
+
+-------
+
+Diffwave Reduced Audio
+CUDA_VISIBLE_DEVICES=2 python __main__.py \
+   checkpoints/diffwave_degraded_mels \
+   /workspace/LJSpeech-1.1 \
+   filelists/train.txt >> logs/diffwave_degraded_mels.log 2>&1 &
+
+CUDA_VISIBLE_DEVICES=3 python inference.py \
+   checkpoints/diffwave_degraded_mels \
+   /workspace/LJSpeech-1.1 \
+   filelists/test.txt \
+   --step 50000  --fast_iter 50 >> logs/inferences/diffwave_degraded_mels.log 2>&1 &
+
+python evaluate.py --sdir=checkpoints/sample_slow/diffwave_degraded_mels --odir=/workspace/LJSpeech-1.1/wavs
