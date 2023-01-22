@@ -208,3 +208,36 @@ CUDA_VISIBLE_DEVICES=5 python inference.py \
    --step 50000  --fast_iter 50 >> logs/inferences/diffwave_tacotron.log 2>&1 &
 
 python evaluate.py --sdir=checkpoints/sample_slow/diffwave_tacotron_step50000 --odir=/workspace/LJSpeech-1.1/wavs
+
+-------
+Diffwave Degraded Mels + e-4
+
+CUDA_VISIBLE_DEVICES=0 python __main__.py \
+   checkpoints/diffwave_degraded_mels_e4 \
+   /workspace/LJSpeech-1.1 \
+   filelists/train.txt >> logs/diffwave_degraded_mels_e4.log 2>&1 &
+
+CUDA_VISIBLE_DEVICES=0 python inference.py \
+   checkpoints/diffwave_degraded_mels_e4 \
+   /workspace/LJSpeech-1.1 \
+   filelists/test.txt \
+   --step 50000  --fast_iter 50 >> logs/inferences/diffwave_degraded_mels_e4.log 2>&1 &
+
+python evaluate.py --sdir=checkpoints/sample_slow/diffwave_degraded_mels_e4_step50000 --odir=/workspace/LJSpeech-1.1/wavs
+
+
+-------
+Diffwave Degraded Mels + e-6
+
+CUDA_VISIBLE_DEVICES=0 python __main__.py \
+   checkpoints/diffwave_degraded_mels_e6 \
+   /workspace/LJSpeech-1.1 \
+   filelists/train.txt >> logs/diffwave_degraded_mels_e4.log 2>&1 &
+
+CUDA_VISIBLE_DEVICES=0 python inference.py \
+   checkpoints/diffwave_degraded_mels_e6 \
+   /workspace/LJSpeech-1.1 \
+   filelists/test.txt \
+   --step 50000  --fast_iter 50 >> logs/inferences/diffwave_degraded_mels_e6.log 2>&1 &
+
+python evaluate.py --sdir=checkpoints/sample_slow/diffwave_degraded_mels_e4_step50000 --odir=/workspace/LJSpeech-1.1/wavs
