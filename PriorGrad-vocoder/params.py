@@ -89,7 +89,7 @@ params = AttrDict(
     noise_dist=1, #1=gaussian, 2=gamma
     gamma_init_scale=0.001,
 
-    use_glot=True,
+    use_glot=False,
     use_mels=True,
 
     # accumulative prediction
@@ -97,7 +97,7 @@ params = AttrDict(
     acc_pred_step=2,
 
     degraded_mels=True,
-    degraded_scale=1e-5,
+    degraded_scale=1e-4,
 
     pretrained_mels=0, #0 no pretrained mel, 1 tacotron2, 2 fast speech 2
     inf_pretrained_mels=1, #0 no pretrained mel, 1 tacotron2, 2 fast speech 2
