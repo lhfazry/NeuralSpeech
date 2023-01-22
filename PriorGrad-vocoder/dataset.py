@@ -167,6 +167,8 @@ class NumpyDataset(torch.utils.data.Dataset):
             elif self.params.inf_pretrained_mels == 2: # fast speech
                 spectrogram = get_mel(audio, self.params)
         
+        print(f"spectrogram: {spectrogram.shape}")
+        
         if self.use_prior:
             energy = (spectrogram.exp()).sum(1).sqrt()
 
